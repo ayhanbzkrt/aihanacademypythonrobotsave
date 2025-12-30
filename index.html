@@ -1,0 +1,2259 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI'HAN ACADEMY | Python ile Robot Kurtarma</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Orbitron:wght@700;900&family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
+    <style>
+        :root {
+            --bot-color: #00f2fe;
+            --bot-color2: #ff007a;
+            --bot-color3: #facc15;
+            --bg-dark: #020617;
+            --accent: #ff007a;
+            --text-main: #f8fafc;
+            --glass: rgba(255, 255, 255, 0.05);
+            --rainbow-1: #FF6B8B;
+            --rainbow-2: #FFD166;
+            --rainbow-3: #06D6A0;
+            --rainbow-4: #118AB2;
+            --rainbow-5: #7209B7;
+            --rainbow-6: #FF9E00;
+            --success: #10b981;
+            --error: #ef4444;
+            --warning: #f59e0b;
+            --ai-color: #8B5CF6;
+            --neon-blue: #00eeff;
+            --neon-pink: #ff00ff;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: linear-gradient(135deg, #0a0a2a 0%, #020617 50%, #1a1a3a 100%);
+            color: var(--text-main);
+            font-family: 'Fredoka', sans-serif;
+            overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(0, 242, 254, 0.1) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(255, 0, 122, 0.1) 0%, transparent 20%),
+                radial-gradient(circle at 50% 50%, rgba(139, 92, 246, 0.1) 0%, transparent 30%);
+        }
+        
+        .language-selector {
+            position: fixed; inset: 0;
+            background: linear-gradient(135deg, #0a0a2a 0%, #1a1a3a 100%);
+            z-index: 10000;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 40px;
+        }
+        .language-title {
+            font-family: 'Orbitron', sans-serif; font-size: 3rem;
+            background: linear-gradient(45deg, var(--bot-color), var(--bot-color2), var(--bot-color3));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            text-align: center; margin-bottom: 20px;
+        }
+        .language-subtitle { font-size: 1.2rem; opacity: 0.8; text-align: center; max-width: 600px; line-height: 1.6; }
+        .language-buttons { display: flex; gap: 30px; flex-wrap: wrap; justify-content: center; }
+        .lang-select-btn {
+            padding: 20px 40px; border-radius: 20px; border: 3px solid transparent;
+            background: rgba(255, 255, 255, 0.1); color: white; font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem; cursor: pointer; transition: all 0.3s ease;
+            min-width: 200px; text-align: center; backdrop-filter: blur(10px);
+        }
+        .lang-select-btn:hover { transform: translateY(-5px) scale(1.05); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3); }
+        .lang-select-btn.turkish { border-color: #E30A17; background: linear-gradient(45deg, rgba(227, 10, 23, 0.2), rgba(227, 10, 23, 0.1)); }
+        .lang-select-btn.english { border-color: #00f2fe; background: linear-gradient(45deg, rgba(0, 242, 254, 0.2), rgba(0, 242, 254, 0.1)); }
+        .lang-select-btn.turkish:hover { background: rgba(227, 10, 23, 0.3); box-shadow: 0 20px 40px rgba(227, 10, 23, 0.2); }
+        .lang-select-btn.english:hover { background: rgba(0, 242, 254, 0.3); box-shadow: 0 20px 40px rgba(0, 242, 254, 0.2); }
+        
+        .progress-container { position: fixed; top: 70px; left: 0; right: 0; height: 8px; background: rgba(0,0,0,0.5); z-index: 999; display: none; }
+        .progress-bar { height: 100%; background: linear-gradient(90deg, var(--rainbow-1), var(--rainbow-2), var(--rainbow-3), var(--rainbow-4), var(--rainbow-5), var(--rainbow-6)); width: 0%; transition: width 0.5s ease; border-radius: 0 4px 4px 0; }
+        
+        .stats-display {
+            position: fixed; top: 85px; right: 20px; background: rgba(0,0,0,0.8);
+            padding: 15px 20px; border-radius: 15px; border: 2px solid var(--bot-color);
+            z-index: 998; display: none; gap: 15px; font-family: 'Orbitron', sans-serif; backdrop-filter: blur(10px);
+        }
+        .stat-item { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; }
+        .stat-icon { font-size: 1.2rem; }
+        .xp-value { color: var(--bot-color3); }
+        .badge-value { color: var(--rainbow-5); }
+        .mood-meter { width: 60px; height: 8px; background: rgba(255,255,255,0.2); border-radius: 4px; overflow: hidden; }
+        .mood-fill { height: 100%; background: linear-gradient(90deg, var(--error), var(--warning), var(--success)); transition: width 0.5s ease; }
+        
+        .audio-controls {
+            position: fixed; bottom: 20px; right: 20px; z-index: 1000;
+            display: flex; gap: 10px; background: rgba(0, 0, 0, 0.8); padding: 12px;
+            border-radius: 50px; backdrop-filter: blur(10px); border: 1px solid var(--bot-color);
+            box-shadow: 0 0 20px rgba(0, 242, 254, 0.3);
+        }
+        .audio-btn {
+            width: 40px; height: 40px; border-radius: 50%; border: none;
+            background: var(--bot-color); color: var(--bg-dark); cursor: pointer;
+            font-size: 1.2rem; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center;
+        }
+        .audio-btn:hover { transform: scale(1.1); box-shadow: 0 0 15px var(--bot-color); }
+        .volume-slider {
+            width: 100px; height: 6px; -webkit-appearance: none; appearance: none;
+            background: linear-gradient(to right, var(--bot-color), var(--bot-color2));
+            border-radius: 3px; outline: none; opacity: 0.8; transition: opacity 0.2s; align-self: center;
+        }
+        .volume-slider:hover { opacity: 1; }
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none; appearance: none; width: 18px; height: 18px;
+            border-radius: 50%; background: white; cursor: pointer; border: 2px solid var(--bot-color);
+        }
+        
+        .python-terminal {
+            position: fixed; bottom: 80px; right: 20px; width: 450px; height: 350px;
+            background: rgba(0, 0, 0, 0.95); border-radius: 15px; border: 2px solid var(--bot-color3);
+            z-index: 999; overflow: hidden; display: none; box-shadow: 0 0 30px rgba(252, 186, 3, 0.4);
+            font-family: 'Courier New', monospace; flex-direction: column;
+        }
+        .terminal-header {
+            background: linear-gradient(90deg, #2d2d2d, #1a1a1a); padding: 10px 15px;
+            display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--bot-color3);
+        }
+        .terminal-title { font-family: 'Orbitron', sans-serif; font-size: 0.9rem; color: var(--bot-color3); }
+        .terminal-controls { display: flex; gap: 8px; }
+        .terminal-btn { width: 12px; height: 12px; border-radius: 50%; cursor: pointer; border: none; }
+        .close-btn { background: #ff5f57; }
+        .min-btn { background: #ffbd2e; }
+        .max-btn { background: #28ca42; }
+        .terminal-body { padding: 15px; flex: 1; overflow-y: auto; font-size: 0.85rem; line-height: 1.5; }
+        .terminal-input-area { display: flex; padding: 10px 15px; background: rgba(0,0,0,0.5); border-top: 1px solid var(--bot-color3); }
+        .terminal-input-area input { flex: 1; background: transparent; border: none; color: var(--bot-color3); font-family: 'Courier New', monospace; font-size: 0.85rem; outline: none; }
+        .prompt { color: var(--bot-color3); margin-right: 5px; }
+        .output { color: #00ff00; margin: 5px 0; white-space: pre-wrap; }
+        .error { color: #ff5555; }
+        .pyodide-loading { color: var(--bot-color); font-style: italic; }
+        
+        #intro-overlay {
+            position: fixed; inset: 0; background: #000; z-index: 5000;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            transition: 1.5s ease-in-out; background: linear-gradient(135deg, #000428 0%, #004e92 100%);
+        }
+        .intro-text {
+            font-family: 'Orbitron', sans-serif; font-size: 1.8rem; text-align: center;
+            max-width: 80%; line-height: 1.6; opacity: 0; transform: translateY(20px);
+            background: linear-gradient(45deg, var(--bot-color), var(--bot-color2), var(--bot-color3));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+            margin-bottom: 20px; transition: all 0.5s ease;
+        }
+        .intro-btn {
+            margin-top: 40px; padding: 15px 40px; border-radius: 50px;
+            background: linear-gradient(45deg, var(--bot-color), var(--bot-color2));
+            color: var(--bg-dark); border: none; font-family: 'Orbitron', sans-serif;
+            font-weight: bold; cursor: pointer; box-shadow: 0 0 40px var(--bot-color);
+            display: none; font-size: 1.2rem; transition: all 0.3s ease;
+        }
+        .intro-btn:hover { transform: scale(1.05); box-shadow: 0 0 50px var(--bot-color); }
+        
+        .planet-container { position: absolute; width: 100%; height: 100%; overflow: hidden; pointer-events: none; }
+        .planet { position: absolute; border-radius: 50%; opacity: 0.7; animation: planet-rotate linear infinite; }
+        .planet-1 { top: 10%; left: 10%; width: 100px; height: 100px; background: radial-gradient(circle at 30% 30%, #ff6b6b, #c92a2a); animation-duration: 40s; }
+        .planet-2 { top: 60%; right: 15%; width: 150px; height: 150px; background: radial-gradient(circle at 30% 30%, #4ecdc4, #1a535c); animation-duration: 60s; }
+        .planet-3 { bottom: 20%; left: 20%; width: 80px; height: 80px; background: radial-gradient(circle at 30% 30%, #ffe66d, #ff9e00); animation-duration: 30s; }
+        
+        nav {
+            padding: 20px 5%; display: flex; justify-content: space-between; align-items: center;
+            background: rgba(0,0,0,0.9); backdrop-filter: blur(15px); z-index: 1000;
+            border-bottom: 1px solid var(--glass); position: sticky; top: 0;
+        }
+        .logo {
+            font-family: 'Orbitron', sans-serif; font-size: 2rem;
+            background: linear-gradient(45deg, var(--bot-color), var(--bot-color2), var(--ai-color));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text; font-weight: 900; letter-spacing: 1px;
+        }
+        .nav-right { display: flex; gap: 15px; align-items: center; }
+        .nav-lang-btn {
+            padding: 10px 25px; border-radius: 50px; border: 2px solid var(--bot-color);
+            background: transparent; color: white; cursor: pointer; font-family: 'Orbitron', sans-serif;
+            transition: all 0.3s ease; font-weight: 600;
+        }
+        .nav-lang-btn:hover { background: var(--bot-color); color: var(--bg-dark); box-shadow: 0 0 20px var(--bot-color); }
+        
+        .hero-area {
+            height: 60vh; position: relative; overflow: hidden;
+            display: flex; align-items: center; justify-content: center;
+            background: radial-gradient(circle at center, rgba(0, 242, 254, 0.1) 0%, transparent 70%);
+        }
+        .story-text {
+            position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+            text-align: center; background: rgba(0, 0, 0, 0.7); padding: 15px 30px;
+            border-radius: 20px; max-width: 800px; font-size: 1.1rem; line-height: 1.6;
+            border: 2px solid var(--bot-color); backdrop-filter: blur(10px); z-index: 101;
+        }
+        .robot-wrapper {
+            position: absolute; z-index: 100; transition: all 2s ease-in-out; cursor: pointer;
+        }
+        .sad-robot { filter: brightness(0.8); animation: sad-float 6s infinite ease-in-out; }
+        .happy-robot { filter: brightness(1.2) saturate(1.3); animation: float 4s infinite ease-in-out; }
+        .speech-bubble {
+            position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%);
+            background: white; color: black; padding: 12px 24px; border-radius: 20px;
+            font-weight: 600; font-size: 0.9rem; white-space: nowrap; opacity: 0;
+            transition: 0.3s; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            pointer-events: none; font-family: 'Comic Neue', cursive; border: 2px solid var(--bot-color);
+            max-width: 200px; text-align: center; z-index: 102;
+        }
+        .speech-bubble::after {
+            content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
+            border: 10px solid transparent; border-top-color: white;
+        }
+        .speech-bubble.active { opacity: 1; transform: translateX(-50%) translateY(-10px); }
+        
+        .mission-section { padding: 80px 5%; max-width: 1400px; margin: 0 auto; width: 100%; }
+        .mission-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 30px;
+            opacity: 0; transform: translateY(50px); transition: 1s;
+        }
+        .mission-card {
+            background: linear-gradient(145deg, rgba(30, 30, 46, 0.9), rgba(20, 20, 40, 0.9));
+            border: 2px solid transparent; border-radius: 24px; padding: 35px 25px; text-align: center;
+            transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); cursor: pointer;
+            position: relative; overflow: hidden; min-height: 300px; display: flex;
+            flex-direction: column; justify-content: space-between; align-items: center; backdrop-filter: blur(10px);
+        }
+        .mission-card::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 6px;
+            background: linear-gradient(90deg, var(--rainbow-1), var(--rainbow-2), var(--rainbow-3), var(--rainbow-4), var(--rainbow-5), var(--rainbow-6));
+            z-index: 1;
+        }
+        .mission-card.locked { opacity: 0.5; pointer-events: none; }
+        .mission-card.locked::after { content: '🔒'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 3rem; z-index: 10; }
+        .mission-card.completed { border-color: var(--success) !important; }
+        .mission-card.completed::before { background: var(--success); }
+        .card-status { position: absolute; top: 15px; right: 15px; font-size: 1.5rem; z-index: 2; }
+        .mission-card:nth-child(1) { border-color: var(--rainbow-1); }
+        .mission-card:nth-child(2) { border-color: var(--rainbow-2); }
+        .mission-card:nth-child(3) { border-color: var(--rainbow-3); }
+        .mission-card:nth-child(4) { border-color: var(--rainbow-4); }
+        .mission-card:nth-child(5) { border-color: var(--rainbow-5); }
+        .mission-card:nth-child(6) { border-color: var(--rainbow-6); }
+        .mission-card:nth-child(7) { border-color: var(--rainbow-1); }
+        .mission-card:nth-child(8) { border-color: var(--rainbow-2); }
+        .mission-card:nth-child(9) { border-color: var(--rainbow-3); }
+        .mission-card:nth-child(10) { border-color: var(--rainbow-4); }
+        .mission-card:nth-child(11) { border-color: var(--rainbow-5); }
+        .mission-card:nth-child(12) { border-color: var(--rainbow-6); }
+        .mission-card:nth-child(13) { border-color: var(--neon-blue); }
+        .mission-card:nth-child(14) { border-color: var(--neon-pink); }
+        .mission-card:nth-child(15) { border-color: var(--ai-color); }
+        .mission-card:nth-child(16) { border-color: #FF6B8B; }
+        .mission-card:nth-child(17) { border-color: #FFD166; }
+        .mission-card:nth-child(18) { border-color: #06D6A0; }
+        .mission-card.ai-card {
+            border-color: var(--ai-color);
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
+        }
+        .mission-card:not(.locked):hover {
+            transform: translateY(-15px) scale(1.03);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.6), 0 0 60px rgba(var(--card-color-rgb), 0.3);
+            background: linear-gradient(145deg, rgba(40, 40, 60, 0.9), rgba(25, 25, 45, 0.9));
+        }
+        .mission-card.ai-card:hover {
+            box-shadow: 0 25px 50px rgba(0,0,0,0.6), 0 0 60px rgba(139, 92, 246, 0.4);
+        }
+        .card-icon {
+            font-size: 3.5rem; margin-bottom: 20px;
+            background: linear-gradient(45deg, var(--rainbow-1), var(--rainbow-6));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+            transition: transform 0.3s; filter: drop-shadow(0 5px 15px rgba(0,0,0,0.3));
+        }
+        .ai-icon {
+            background: linear-gradient(45deg, var(--ai-color), var(--neon-blue));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .mission-card:hover .card-icon { transform: scale(1.2) rotate(5deg); }
+        .mission-card h3 {
+            font-family: 'Orbitron', sans-serif; margin-bottom: 15px; color: white;
+            font-size: 1.3rem; text-shadow: 0 2px 10px rgba(0,0,0,0.3); line-height: 1.3;
+        }
+        .mission-card p { opacity: 0.95; font-size: 1rem; line-height: 1.6; color: #e0e0e0; margin-bottom: 15px; flex-grow: 1; }
+        .mission-card .code-example {
+            font-family: 'Courier New', monospace; background: rgba(0, 0, 0, 0.5);
+            padding: 10px; border-radius: 8px; font-size: 0.8rem; color: var(--bot-color3);
+            border-left: 3px solid var(--bot-color3); text-align: left; width: 100%;
+        }
+        
+        .lesson-modal {
+            position: fixed; inset: 0; background: rgba(0, 0, 0, 0.95);
+            z-index: 9000; display: none; overflow-y: auto; padding: 20px;
+        }
+        .lesson-modal.active { display: flex; justify-content: center; align-items: flex-start; }
+        .lesson-container {
+            background: linear-gradient(145deg, #1a1a3a, #0a0a2a); border-radius: 30px;
+            max-width: 1000px; width: 100%; margin: 20px auto; border: 3px solid var(--bot-color);
+            overflow: hidden; box-shadow: 0 0 60px rgba(0, 242, 254, 0.3);
+        }
+        .lesson-header {
+            background: linear-gradient(90deg, rgba(0,0,0,0.8), rgba(0,0,0,0.6));
+            padding: 25px 30px; display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 2px solid var(--bot-color);
+        }
+        .lesson-title {
+            font-family: 'Orbitron', sans-serif; font-size: 1.8rem;
+            background: linear-gradient(45deg, var(--bot-color), var(--bot-color2));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .lesson-close {
+            width: 50px; height: 50px; border-radius: 50%; background: var(--error);
+            border: none; color: white; font-size: 1.5rem; cursor: pointer; transition: all 0.3s;
+        }
+        .lesson-close:hover { transform: scale(1.1); box-shadow: 0 0 20px var(--error); }
+        .lesson-progress { display: flex; padding: 20px 30px; gap: 10px; background: rgba(0,0,0,0.3); overflow-x: auto; flex-wrap: wrap; }
+        .progress-step {
+            flex: 1; min-width: 80px; padding: 10px; text-align: center; border-radius: 10px;
+            background: rgba(255,255,255,0.1); font-size: 0.85rem; cursor: pointer; transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+        .progress-step.active { background: var(--bot-color); color: var(--bg-dark); font-weight: bold; }
+        .progress-step.completed { background: var(--success); color: white; }
+        .progress-step i { display: block; font-size: 1.2rem; margin-bottom: 5px; }
+        .lesson-content { padding: 30px; min-height: 400px; }
+        .lesson-section { display: none; }
+        .lesson-section.active { display: block; animation: fadeIn 0.5s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .story-mission {
+            background: linear-gradient(135deg, rgba(255,107,139,0.2), rgba(255,209,102,0.2));
+            padding: 30px; border-radius: 20px; margin-bottom: 20px; border: 2px solid var(--rainbow-1);
+        }
+        .story-mission h3 { font-family: 'Orbitron', sans-serif; color: var(--rainbow-1); margin-bottom: 15px; font-size: 1.5rem; }
+        .story-mission p { font-size: 1.2rem; line-height: 1.8; }
+        .story-robot { font-size: 4rem; text-align: center; margin: 20px 0; animation: float 3s ease-in-out infinite; }
+        
+        .learn-content {
+            background: rgba(6, 214, 160, 0.1); padding: 25px; border-radius: 15px;
+            border: 2px solid var(--rainbow-3); margin-bottom: 20px;
+        }
+        .learn-content h3 { color: var(--rainbow-3); margin-bottom: 15px; font-size: 1.4rem; }
+        .learn-content p { font-size: 1.1rem; line-height: 1.8; margin-bottom: 15px; }
+        .learn-content code { background: rgba(0,0,0,0.4); padding: 2px 8px; border-radius: 4px; color: var(--bot-color3); }
+        
+        .ai-section {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(0, 238, 255, 0.2));
+            border: 2px solid var(--ai-color);
+            margin: 20px 0;
+            border-radius: 20px;
+            padding: 25px;
+        }
+        .ai-section h3 { color: var(--ai-color); margin-bottom: 15px; font-size: 1.4rem; }
+        
+        .example-card {
+            background: rgba(17, 138, 178, 0.15); padding: 20px; border-radius: 15px;
+            border-left: 4px solid var(--rainbow-4); margin-bottom: 20px;
+        }
+        .example-card h4 { color: var(--rainbow-4); margin-bottom: 10px; font-size: 1.2rem; }
+        .example-code {
+            background: rgba(0,0,0,0.5); padding: 15px; border-radius: 10px;
+            font-family: 'Courier New', monospace; color: var(--bot-color3);
+            margin: 10px 0; overflow-x: auto; white-space: pre-wrap;
+        }
+        .example-explanation {
+            font-size: 1rem; color: #ccc; margin-top: 10px;
+            padding: 10px; background: rgba(255,255,255,0.05); border-radius: 8px;
+        }
+        
+        .interactive-area {
+            background: linear-gradient(135deg, rgba(114, 9, 183, 0.2), rgba(255, 158, 0, 0.2));
+            padding: 30px; border-radius: 20px; border: 2px solid var(--rainbow-5); margin: 20px 0;
+        }
+        .interactive-area h3 { color: var(--rainbow-5); margin-bottom: 20px; font-size: 1.4rem; }
+        
+        .code-editor-container { margin: 20px 0; }
+        .code-editor {
+            width: 100%; min-height: 200px; background: rgba(0,0,0,0.8);
+            border: 2px solid var(--bot-color3); border-radius: 10px; padding: 15px;
+            font-family: 'Courier New', monospace; color: var(--bot-color3);
+            font-size: 1rem; resize: vertical; outline: none;
+        }
+        .code-editor:focus { box-shadow: 0 0 20px rgba(252, 186, 3, 0.3); }
+        .editor-buttons { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; }
+        .run-btn {
+            padding: 12px 30px; border-radius: 50px; border: none;
+            background: linear-gradient(45deg, var(--success), #059669);
+            color: white; font-family: 'Orbitron', sans-serif; font-weight: bold;
+            cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 8px;
+        }
+        .run-btn:hover { transform: scale(1.05); box-shadow: 0 0 20px var(--success); }
+        .reset-btn {
+            padding: 12px 30px; border-radius: 50px; border: 2px solid var(--warning);
+            background: transparent; color: var(--warning); font-family: 'Orbitron', sans-serif;
+            cursor: pointer; transition: all 0.3s;
+        }
+        .reset-btn:hover { background: var(--warning); color: var(--bg-dark); }
+        .code-output {
+            background: rgba(0,0,0,0.9); border: 2px solid var(--success);
+            border-radius: 10px; padding: 15px; margin-top: 15px;
+            font-family: 'Courier New', monospace; min-height: 100px; white-space: pre-wrap;
+        }
+        .code-output.error { border-color: var(--error); }
+        .output-title { color: var(--success); font-weight: bold; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+        .output-content { color: #00ff00; }
+        .error-helper { background: rgba(239, 68, 68, 0.2); border-radius: 8px; padding: 15px; margin-top: 10px; border-left: 4px solid var(--error); }
+        .error-helper h4 { color: var(--error); margin-bottom: 8px; }
+        .error-helper p { color: #fca5a5; }
+        
+        .quiz-container { background: rgba(0,0,0,0.3); padding: 25px; border-radius: 15px; }
+        .quiz-progress { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .quiz-dot {
+            width: 35px; height: 35px; border-radius: 50%; background: rgba(255,255,255,0.2);
+            display: flex; align-items: center; justify-content: center; font-weight: bold; transition: all 0.3s;
+        }
+        .quiz-dot.active { background: var(--bot-color); color: var(--bg-dark); transform: scale(1.2); }
+        .quiz-dot.correct { background: var(--success); color: white; }
+        .quiz-dot.incorrect { background: var(--error); color: white; }
+        .quiz-question {
+            font-size: 1.3rem; margin-bottom: 20px; padding: 20px;
+            background: rgba(255,255,255,0.05); border-radius: 10px; line-height: 1.6;
+        }
+        .quiz-options { display: grid; gap: 15px; }
+        .quiz-option {
+            padding: 15px 20px; background: rgba(255,255,255,0.1);
+            border: 2px solid transparent; border-radius: 10px;
+            cursor: pointer; transition: all 0.3s; text-align: left; font-size: 1.1rem;
+        }
+        .quiz-option:hover:not(.disabled) { background: rgba(0, 242, 254, 0.2); border-color: var(--bot-color); transform: translateX(10px); }
+        .quiz-option.selected { border-color: var(--bot-color); background: rgba(0, 242, 254, 0.3); }
+        .quiz-option.correct { border-color: var(--success); background: rgba(16, 185, 129, 0.3); }
+        .quiz-option.incorrect { border-color: var(--error); background: rgba(239, 68, 68, 0.3); }
+        .quiz-option.disabled { pointer-events: none; }
+        .quiz-input {
+            width: 100%; padding: 15px; background: rgba(0,0,0,0.5);
+            border: 2px solid var(--bot-color); border-radius: 10px;
+            color: white; font-size: 1.1rem; font-family: 'Courier New', monospace; outline: none;
+        }
+        .quiz-feedback { margin-top: 20px; padding: 20px; border-radius: 10px; display: none; }
+        .quiz-feedback.show { display: block; animation: fadeIn 0.3s ease; }
+        .quiz-feedback.correct { background: rgba(16, 185, 129, 0.2); border: 2px solid var(--success); }
+        .quiz-feedback.incorrect { background: rgba(239, 68, 68, 0.2); border: 2px solid var(--error); }
+        .quiz-feedback h4 { margin-bottom: 10px; font-size: 1.2rem; }
+        .quiz-hint { background: rgba(245, 158, 11, 0.2); border-left: 4px solid var(--warning); padding: 15px; margin-top: 10px; border-radius: 0 10px 10px 0; }
+        .quiz-hint h5 { color: var(--warning); margin-bottom: 5px; }
+        .quiz-next-btn, .quiz-submit-btn {
+            margin-top: 15px; padding: 12px 30px; border-radius: 50px; border: none;
+            font-family: 'Orbitron', sans-serif; font-weight: bold; cursor: pointer; transition: all 0.3s;
+        }
+        .quiz-next-btn { background: var(--bot-color); color: var(--bg-dark); }
+        .quiz-submit-btn { background: linear-gradient(45deg, var(--rainbow-5), var(--rainbow-6)); color: white; }
+        .quiz-next-btn:hover, .quiz-submit-btn:hover { transform: scale(1.05); }
+        
+        .reward-section { text-align: center; padding: 40px; }
+        .reward-animation { font-size: 6rem; margin-bottom: 30px; animation: bounce 1s ease infinite; }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
+        .reward-title {
+            font-family: 'Orbitron', sans-serif; font-size: 2.5rem;
+            background: linear-gradient(45deg, var(--rainbow-1), var(--rainbow-6));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 20px;
+        }
+        .reward-stats { display: flex; justify-content: center; gap: 40px; margin: 30px 0; flex-wrap: wrap; }
+        .reward-stat { background: rgba(255,255,255,0.1); padding: 20px 40px; border-radius: 15px; text-align: center; }
+        .reward-stat-value { font-family: 'Orbitron', sans-serif; font-size: 2rem; color: var(--bot-color3); }
+        .reward-stat-label { font-size: 0.9rem; opacity: 0.8; margin-top: 5px; }
+        .badge-earned {
+            display: inline-flex; align-items: center; gap: 10px; padding: 15px 30px;
+            background: linear-gradient(45deg, var(--rainbow-5), var(--rainbow-6));
+            border-radius: 50px; margin: 20px 0; font-family: 'Orbitron', sans-serif; font-size: 1.2rem;
+        }
+        .badge-earned i { font-size: 1.5rem; }
+        .continue-btn {
+            padding: 15px 50px; border-radius: 50px; border: none;
+            background: linear-gradient(45deg, var(--success), #059669);
+            color: white; font-family: 'Orbitron', sans-serif; font-size: 1.2rem;
+            font-weight: bold; cursor: pointer; transition: all 0.3s; margin-top: 30px;
+        }
+        .continue-btn:hover { transform: scale(1.05); box-shadow: 0 0 30px var(--success); }
+        
+        .finale-modal {
+            position: fixed; inset: 0; background: rgba(0, 0, 0, 0.98);
+            z-index: 9500; display: none; justify-content: center; align-items: center;
+            overflow-y: auto; padding: 20px;
+        }
+        .finale-modal.active { display: flex; }
+        .finale-container { max-width: 900px; width: 100%; text-align: center; padding: 50px; }
+        .finale-title {
+            font-family: 'Orbitron', sans-serif; font-size: 3rem;
+            background: linear-gradient(45deg, var(--rainbow-1), var(--rainbow-2), var(--rainbow-3), var(--rainbow-4), var(--rainbow-5), var(--rainbow-6));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            margin-bottom: 30px; animation: rainbow 3s linear infinite;
+        }
+        .finale-robots { display: flex; justify-content: center; gap: 20px; margin: 40px 0; flex-wrap: wrap; }
+        .finale-robot { font-size: 4rem; animation: float 2s ease-in-out infinite; }
+        .finale-robot:nth-child(2) { animation-delay: 0.3s; }
+        .finale-robot:nth-child(3) { animation-delay: 0.6s; }
+        .finale-robot:nth-child(4) { animation-delay: 0.9s; }
+        .finale-robot:nth-child(5) { animation-delay: 1.2s; }
+        .portal-animation {
+            width: 200px; height: 200px; margin: 30px auto; border-radius: 50%;
+            background: conic-gradient(var(--rainbow-1), var(--rainbow-2), var(--rainbow-3), var(--rainbow-4), var(--rainbow-5), var(--rainbow-6), var(--rainbow-1));
+            animation: spin 3s linear infinite; display: flex; align-items: center; justify-content: center;
+        }
+        .portal-inner {
+            width: 180px; height: 180px; border-radius: 50%;
+            background: radial-gradient(circle, #000 0%, #1a1a3a 100%);
+            display: flex; align-items: center; justify-content: center; font-size: 4rem;
+        }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .finale-message { font-size: 1.3rem; line-height: 1.8; margin: 30px auto; max-width: 700px; }
+        .name-input-container { margin: 30px 0; }
+        .name-input-container label { display: block; margin-bottom: 15px; font-size: 1.2rem; color: var(--bot-color); }
+        .name-input {
+            padding: 15px 30px; font-size: 1.2rem; background: rgba(0,0,0,0.5);
+            border: 2px solid var(--bot-color); border-radius: 50px; color: white;
+            text-align: center; width: 300px; max-width: 100%; outline: none;
+        }
+        .name-input:focus { box-shadow: 0 0 20px var(--bot-color); }
+        .certificate-btn {
+            padding: 20px 50px; border-radius: 50px; border: none;
+            background: linear-gradient(45deg, var(--rainbow-1), var(--rainbow-6));
+            color: white; font-family: 'Orbitron', sans-serif; font-size: 1.3rem;
+            font-weight: bold; cursor: pointer; transition: all 0.3s; margin-top: 20px;
+        }
+        .certificate-btn:hover { transform: scale(1.05); box-shadow: 0 0 40px var(--rainbow-5); }
+        
+        .certificate-modal {
+            position: fixed; inset: 0; background: rgba(0, 0, 0, 0.95);
+            z-index: 9600; display: none; justify-content: center; align-items: center;
+            padding: 20px; overflow-y: auto;
+        }
+        .certificate-modal.active { display: flex; }
+        .certificate {
+            background: linear-gradient(135deg, #fef9c3, #fef3c7);
+            padding: 60px; border-radius: 20px; max-width: 800px; width: 100%;
+            text-align: center; position: relative; box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            border: 8px double #d4af37;
+        }
+        .certificate-border { position: absolute; inset: 15px; border: 3px solid #d4af37; border-radius: 15px; pointer-events: none; }
+        .certificate-logo { font-family: 'Orbitron', sans-serif; font-size: 2rem; color: #1a1a3a; margin-bottom: 20px; }
+        .certificate-main-title { font-family: 'Orbitron', sans-serif; font-size: 2.5rem; color: #7c2d12; margin-bottom: 30px; }
+        .certificate-text { font-size: 1.2rem; color: #44403c; margin-bottom: 20px; }
+        .certificate-name { font-family: 'Orbitron', sans-serif; font-size: 2.2rem; color: #1a1a3a; margin: 30px 0; padding: 10px; border-bottom: 2px solid #d4af37; }
+        .certificate-achievement { font-size: 1.1rem; color: #57534e; margin: 20px 0; line-height: 1.6; }
+        .certificate-badges { display: flex; justify-content: center; gap: 15px; margin: 30px 0; flex-wrap: wrap; }
+        .certificate-badge {
+            width: 50px; height: 50px; background: linear-gradient(45deg, #d4af37, #f59e0b);
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-size: 1.5rem; color: white;
+        }
+        .certificate-date { font-size: 1rem; color: #78716c; margin-top: 30px; }
+        .certificate-seal {
+            position: absolute; bottom: 30px; right: 50px; width: 80px; height: 80px;
+            background: linear-gradient(45deg, #d4af37, #fbbf24); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; font-size: 2rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        .certificate-buttons { display: flex; gap: 20px; justify-content: center; margin-top: 40px; }
+        .print-btn, .close-cert-btn {
+            padding: 15px 40px; border-radius: 50px; font-family: 'Orbitron', sans-serif;
+            font-size: 1.1rem; cursor: pointer; transition: all 0.3s;
+        }
+        .print-btn { border: none; background: #1a1a3a; color: white; }
+        .close-cert-btn { border: 2px solid #1a1a3a; background: transparent; color: #1a1a3a; }
+        .print-btn:hover, .close-cert-btn:hover { transform: scale(1.05); }
+        
+        footer {
+            background: rgba(0, 0, 0, 0.9); padding: 50px 20px; text-align: center;
+            border-top: 2px solid var(--bot-color); margin-top: 80px; position: relative; overflow: hidden;
+        }
+        footer::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+            background: linear-gradient(90deg, var(--bot-color), var(--bot-color2), var(--bot-color3));
+        }
+        .ft-links { margin-top: 20px; display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; }
+        .ft-links a {
+            color: #aaa; text-decoration: none; font-size: 1.1rem;
+            transition: all 0.3s ease; padding: 8px 16px; border-radius: 20px; cursor: pointer;
+        }
+        .ft-links a:hover { color: var(--bot-color); background: rgba(0, 242, 254, 0.1); transform: translateY(-2px); }
+        
+        @keyframes float { 0%, 100% { transform: translateY(0) rotate(0); } 33% { transform: translateY(-20px) rotate(2deg); } 66% { transform: translateY(-10px) rotate(-2deg); } }
+        @keyframes sad-float { 0%, 100% { transform: translateY(0) rotate(0); } 33% { transform: translateY(-10px) rotate(-1deg); } 66% { transform: translateY(-5px) rotate(1deg); } }
+        @keyframes planet-rotate { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+        @keyframes rainbow { 0% { filter: hue-rotate(0deg); } 100% { filter: hue-rotate(360deg); } }
+        @keyframes star-twinkle { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+        @keyframes ai-glow {
+            0%, 100% { box-shadow: 0 0 10px rgba(139, 92, 246, 0.5); }
+            50% { box-shadow: 0 0 20px rgba(139, 92, 246, 0.8), 0 0 30px rgba(0, 238, 255, 0.6); }
+        }
+        .floating { animation: float 6s infinite ease-in-out; }
+        .sad-float { animation: sad-float 8s infinite ease-in-out; }
+        .pulse { animation: pulse 2s infinite; }
+        .rainbow { animation: rainbow 3s infinite linear; }
+        .ai-glow { animation: ai-glow 2s infinite ease-in-out; }
+        
+        .stars { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: -1; }
+        .star { position: absolute; background: white; border-radius: 50%; animation: star-twinkle 3s infinite ease-in-out; }
+        
+        @media print {
+            body * { visibility: hidden; }
+            .certificate-modal, .certificate-modal * { visibility: visible; }
+            .certificate-modal { position: absolute; left: 0; top: 0; background: white; }
+            .certificate { box-shadow: none; margin: 0; }
+            .certificate-buttons { display: none; }
+        }
+        
+        @media (max-width: 768px) {
+            .mission-grid { grid-template-columns: 1fr; }
+            .intro-text { font-size: 1.3rem; }
+            .python-terminal { width: 95%; right: 2.5%; height: 280px; }
+            .audio-controls { bottom: 10px; right: 10px; flex-wrap: wrap; max-width: 180px; justify-content: center; }
+            .language-title { font-size: 2rem; }
+            .lang-select-btn { min-width: 150px; padding: 15px 30px; font-size: 1.2rem; }
+            .mission-card { padding: 25px 20px; min-height: 260px; }
+            .mission-card h3 { font-size: 1.2rem; }
+            .lesson-container { margin: 10px; }
+            .lesson-header { padding: 15px 20px; }
+            .lesson-title { font-size: 1.3rem; }
+            .lesson-content { padding: 20px; }
+            .progress-step { min-width: 60px; padding: 8px; font-size: 0.75rem; }
+            .stats-display { top: 85px; right: 10px; left: 10px; flex-wrap: wrap; justify-content: center; }
+            .certificate { padding: 30px; }
+            .certificate-main-title { font-size: 1.8rem; }
+            .certificate-name { font-size: 1.6rem; }
+        }
+        @media (max-width: 480px) {
+            .hero-area { height: 50vh; }
+            .story-text { font-size: 0.9rem; padding: 10px 15px; }
+            .card-icon { font-size: 2.5rem; }
+            .quiz-question { font-size: 1.1rem; }
+            .quiz-option { font-size: 1rem; padding: 12px 15px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="language-selector" id="languageSelector">
+        <div class="language-title">AI'HAN ACADEMY</div>
+        <div class="language-subtitle" id="langSubtitle">Python ile Kayıp Robotları Kurtar!</div>
+        <div class="language-buttons">
+            <button class="lang-select-btn turkish" onclick="selectLanguage('TR')"><i class="fas fa-flag"></i> TÜRKÇE</button>
+            <button class="lang-select-btn english" onclick="selectLanguage('EN')"><i class="fas fa-globe"></i> ENGLISH</button>
+        </div>
+        <div style="margin-top: 30px; opacity: 0.7; text-align: center;">Dilini seç ve maceraya başla! / Choose your language and begin the adventure!</div>
+    </div>
+    <div class="stars" id="stars"></div>
+    <div class="progress-container" id="progressContainer"><div class="progress-bar" id="progressBar"></div></div>
+    <div class="stats-display" id="statsDisplay">
+        <div class="stat-item"><span class="stat-icon">⭐</span><span class="xp-value" id="xpDisplay">0 XP</span></div>
+        <div class="stat-item"><span class="stat-icon">🏆</span><span class="badge-value" id="badgeDisplay">0</span></div>
+        <div class="stat-item"><span class="stat-icon">🤖</span><div class="mood-meter"><div class="mood-fill" id="moodFill" style="width: 20%;"></div></div></div>
+    </div>
+    <div class="audio-controls">
+        <button class="audio-btn" id="musicToggle" title="Toggle Music"><i class="fas fa-music"></i></button>
+        <input type="range" min="0" max="100" value="50" class="volume-slider" id="volumeControl">
+        <button class="audio-btn" id="terminalToggle" title="Python Terminal"><i class="fas fa-code"></i></button>
+    </div>
+    <div class="python-terminal" id="pythonTerminal">
+        <div class="terminal-header">
+            <div class="terminal-title">🐍 Python Terminal</div>
+            <div class="terminal-controls">
+                <button class="terminal-btn close-btn" onclick="closeTerminal()"></button>
+                <button class="terminal-btn min-btn" onclick="minimizeTerminal()"></button>
+                <button class="terminal-btn max-btn" onclick="maximizeTerminal()"></button>
+            </div>
+        </div>
+        <div class="terminal-body" id="terminalOutput"><div class="pyodide-loading" id="pyodideStatus">Pyodide yükleniyor... / Loading Pyodide...</div></div>
+        <div class="terminal-input-area"><span class="prompt">&gt;&gt;&gt;</span><input type="text" id="terminalInput" placeholder="Python kodu yaz..." onkeypress="handleTerminalInput(event)"></div>
+    </div>
+    <div id="intro-overlay">
+        <div class="planet-container"><div class="planet planet-1"></div><div class="planet planet-2"></div><div class="planet planet-3"></div></div>
+        <div id="intro-msg" class="intro-text"></div>
+        <button id="intro-action" class="intro-btn" onclick="exitIntro()"></button>
+    </div>
+    <nav><div class="logo">AI'HAN ACADEMY</div><div class="nav-right"><button class="nav-lang-btn" onclick="changeLanguage()" id="navLangBtn">EN</button></div></nav>
+    <div class="hero-area" id="stage"><div class="story-text" id="storyText"></div></div>
+    <section class="mission-section">
+        <h2 id="section-title" style="text-align: center; font-family: 'Orbitron'; margin-bottom: 60px; font-size: 2.5rem; text-shadow: 0 0 20px var(--bot-color); background: linear-gradient(45deg, var(--bot-color), var(--bot-color2), var(--ai-color)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"></h2>
+        <div class="mission-grid" id="grid"></div>
+    </section>
+    <div class="lesson-modal" id="lessonModal"><div class="lesson-container"><div class="lesson-header"><div class="lesson-title" id="lessonTitle"></div><button class="lesson-close" onclick="closeLesson()"><i class="fas fa-times"></i></button></div><div class="lesson-progress" id="lessonProgress"></div><div class="lesson-content" id="lessonContent"></div></div></div>
+    <div class="finale-modal" id="finaleModal">
+        <div class="finale-container">
+            <div class="finale-title" id="finaleTitle"></div>
+            <div class="portal-animation"><div class="portal-inner">🌌</div></div>
+            <div class="finale-robots"><div class="finale-robot">🤖</div><div class="finale-robot">🤖</div><div class="finale-robot">🤖</div><div class="finale-robot">🤖</div><div class="finale-robot">🤖</div></div>
+            <div class="finale-message" id="finaleMessage"></div>
+            <div class="name-input-container"><label id="nameLabel"></label><input type="text" class="name-input" id="engineerName" placeholder="..."></div>
+            <button class="certificate-btn" onclick="showCertificate()" id="certBtn"></button>
+        </div>
+    </div>
+    <div class="certificate-modal" id="certificateModal">
+        <div class="certificate" id="certificate">
+            <div class="certificate-border"></div>
+            <div class="certificate-logo">🤖 AI'HAN ACADEMY 🤖</div>
+            <div class="certificate-main-title" id="certMainTitle"></div>
+            <div class="certificate-text" id="certText1"></div>
+            <div class="certificate-name" id="certName"></div>
+            <div class="certificate-achievement" id="certAchievement"></div>
+            <div class="certificate-badges" id="certBadges"></div>
+            <div class="certificate-date" id="certDate"></div>
+            <div class="certificate-seal">🏆</div>
+            <div class="certificate-buttons">
+                <button class="print-btn" onclick="printCertificate()"><i class="fas fa-print"></i> <span id="printBtnText">Yazdır</span></button>
+                <button class="close-cert-btn" onclick="closeCertificate()" id="closeCertBtn">Kapat</button>
+            </div>
+        </div>
+    </div>
+    <footer>
+        <div style="font-family: 'Orbitron'; font-size: 1.8rem; margin-bottom: 15px; background: linear-gradient(45deg, var(--bot-color), var(--bot-color2), var(--ai-color)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">AI'HAN ACADEMY 2026</div>
+        <div style="font-size: 1.1rem; margin-bottom: 25px; opacity: 0.9;">Think • Code • Learn • Create!</div>
+        <div class="ft-links">
+            <a href="https://www.linkedin.com/in/ayhanbozkurt/" target="_blank"><i class="fab fa-linkedin"></i> LinkedIn</a>
+            <a href="https://github.com/ayhanbzkrt" target="_blank"><i class="fab fa-github"></i> GitHub</a>
+            <a onclick="showPythonTerminal()"><i class="fas fa-code"></i> Python Terminal</a>
+            <a onclick="resetAdventure()"><i class="fas fa-redo"></i> <span id="resetLink">Yeniden Başlat</span></a>
+        </div>
+    </footer>
+<script>
+// ============================================================
+// GLOBAL STATE
+// ============================================================
+let lang = 'TR';
+let globalVolume = 0.5;
+let musicPlaying = false;
+let pyodide = null;
+let pyodideReady = false;
+let currentTopicIndex = -1;
+let currentLessonStep = 0;
+let currentQuizIndex = 0;
+let quizAnswers = [];
+let pageVisible = true;
+let backgroundMusicInterval = null;
+let audioCtx = null;
+
+try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
+
+let gameState = { xp: 0, badges: [], robotMood: 20, completedTopics: [], finaleShown: false, engineerName: '' };
+
+// ============================================================
+// COMPLETE TOPICS DATA - 18 TOPICS (12 mevcut + 6 yeni)
+// ============================================================
+const topicsData = [
+    {
+        id: 0, titleTR: "Python'a Giriş & Değişkenler", titleEN: "Introduction & Variables",
+        iconClass: "fa-code", color: "#FF6B8B",
+        storyMissionTR: "🚀 Görev 1: İlk Temas! Robotlar seni duyamıyor çünkü Python bilmiyorsun. İlk kelimeni öğren ve robotlara ismini söyle!",
+        storyMissionEN: "🚀 Mission 1: First Contact! Robots can't hear you because you don't know Python. Learn your first word and tell robots your name!",
+        learnTR: "<p>Merhaba genç kod kahramanı! 🌟 Python, robotların konuştuğu özel bir dildir.</p><p><strong>Değişkenler</strong> kutuları gibidir - içine bilgi koyarsın ve sonra kullanabilirsin. <code>isim = \"Robot\"</code> dediğinde, isim kutusuna Robot kelimesini koyarsın!</p>",
+        learnEN: "<p>Hello young code hero! 🌟 Python is a special language that robots speak.</p><p><strong>Variables</strong> are like boxes - you put information inside and use it later. When you say <code>name = \"Robot\"</code>, you put Robot into the name box!</p>",
+        examplesTR: [
+            { title: "Değişken Oluşturma", code: "isim = \"Alpha\"\nprint(isim)", explanation: "isim adında kutu oluşturduk, içine Alpha yazdık." },
+            { title: "Sayı Değişkeni", code: "yas = 7\nprint(yas)", explanation: "Sayıları da kaydedebiliriz!" },
+            { title: "Birleştirme", code: "ad = \"Beta\"\nprint(\"Merhaba \" + ad)", explanation: "Yazıları + ile birleştiririz." }
+        ],
+        examplesEN: [
+            { title: "Creating Variable", code: "name = \"Alpha\"\nprint(name)", explanation: "Created a box called name, put Alpha inside." },
+            { title: "Number Variable", code: "age = 7\nprint(age)", explanation: "We can save numbers too!" },
+            { title: "Concatenation", code: "name = \"Beta\"\nprint(\"Hello \" + name)", explanation: "Combine texts with +." }
+        ],
+        miniTryType: "output-prediction",
+        miniTryTR: { question: "Bu kod ne yazdırır?", code: "mesaj = \"Bip!\"\nprint(mesaj)", options: ["Bip!", "mesaj", "Hata", "Hiçbir şey"], answer: 0 },
+        miniTryEN: { question: "What does this code print?", code: "msg = \"Beep!\"\nprint(msg)", options: ["Beep!", "msg", "Error", "Nothing"], answer: 0 },
+        challengesTR: [
+            "Bir 'renk' değişkeni oluşturup 'mavi' değerini ata ve yazdır.",
+            "İki sayı değişkeni oluştur (5 ve 3), toplamlarını hesaplayıp yazdır."
+        ],
+        challengesEN: [
+            "Create a 'color' variable with value 'blue' and print it.",
+            "Create two number variables (5 and 3), calculate their sum and print."
+        ],
+        starterCode: "# Robotlara kendini tanıt!\nisim = \"___\"\nprint(\"Merhaba, ben \" + isim)",
+        quizzes: [
+            { type: "choice", questionTR: "Değişken nedir?", questionEN: "What is a variable?", choicesTR: ["Bilgi saklayan kutu", "Bir oyun", "Bir robot", "Bir renk"], choicesEN: ["A box that stores info", "A game", "A robot", "A color"], correct: 0, hintTR: "Bilgi nerede saklanır?", hintEN: "Where is info stored?", explanationTR: "Değişkenler bilgi saklayan kutulardır.", explanationEN: "Variables are boxes that store information." },
+            { type: "choice", questionTR: "print('Merhaba') ne yapar?", questionEN: "What does print('Hello') do?", choicesTR: ["Ekrana yazar", "Bilgisayarı kapatır", "Oyun açar", "Hiçbir şey"], choicesEN: ["Writes to screen", "Turns off computer", "Opens game", "Nothing"], correct: 0, hintTR: "Print = yazdır!", hintEN: "Print means display!", explanationTR: "print() ekrana yazdırır.", explanationEN: "print() displays on screen." }
+        ],
+        reward: { xp: 100, badgeId: "first_contact", badgeNameTR: "İlk Temas", badgeNameEN: "First Contact", badgeIcon: "🎯", moodDelta: 8 }
+    },
+    {
+        id: 1, titleTR: "Veri Tipleri", titleEN: "Data Types",
+        iconClass: "fa-layer-group", color: "#FFD166",
+        storyMissionTR: "🔢 Görev 2: Robot sınıflandırma! Robotlar farklı türde bilgilerle çalışır - sayılar, yazılar, listeler.",
+        storyMissionEN: "🔢 Mission 2: Robot classification! Robots work with different types - numbers, texts, lists.",
+        learnTR: "<p>Python'da bilgiler farklı tiplerde gelir!</p><p><strong>String (str)</strong>: Yazılar, tırnak içinde: <code>\"Merhaba\"</code><br><strong>Integer (int)</strong>: Tam sayılar: <code>42</code><br><strong>Float</strong>: Ondalık sayılar: <code>3.14</code><br><strong>Boolean</strong>: True veya False</p>",
+        learnEN: "<p>In Python, information comes in different types!</p><p><strong>String (str)</strong>: Texts, in quotes: <code>\"Hello\"</code><br><strong>Integer (int)</strong>: Whole numbers: <code>42</code><br><strong>Float</strong>: Decimal numbers: <code>3.14</code><br><strong>Boolean</strong>: True or False</p>",
+        examplesTR: [
+            { title: "String", code: "mesaj = \"Merhaba\"\nprint(type(mesaj))", explanation: "Tırnak içi = string" },
+            { title: "Integer", code: "sayi = 42\nprint(type(sayi))", explanation: "Tam sayı = int" },
+            { title: "Boolean", code: "acik = True\nprint(acik)", explanation: "True/False = boolean" }
+        ],
+        examplesEN: [
+            { title: "String", code: "msg = \"Hello\"\nprint(type(msg))", explanation: "In quotes = string" },
+            { title: "Integer", code: "num = 42\nprint(type(num))", explanation: "Whole number = int" },
+            { title: "Boolean", code: "active = True\nprint(active)", explanation: "True/False = boolean" }
+        ],
+        miniTryType: "fill-blank",
+        miniTryTR: { question: "3.14 hangi tip? (küçük harfle)", answer: "float" },
+        miniTryEN: { question: "What type is 3.14? (lowercase)", answer: "float" },
+        challengesTR: [
+            "Bir string, bir integer ve bir boolean değişkeni oluştur.",
+            "\"100\" string'ini integer'a çevir ve 50 ekle."
+        ],
+        challengesEN: [
+            "Create one string, one integer and one boolean variable.",
+            "Convert \"100\" string to integer and add 50."
+        ],
+        starterCode: "# Farklı tipleri dene!\nisim = \"Alpha\"  # string\nenerji = 100    # int\nhiz = 25.5      # float\nacik = True     # boolean\n\nprint(type(isim))",
+        quizzes: [
+            { type: "choice", questionTR: "'Python' hangi tip?", questionEN: "'Python' is which type?", choicesTR: ["string", "int", "float", "bool"], choicesEN: ["string", "int", "float", "bool"], correct: 0, hintTR: "Tırnak içinde!", hintEN: "In quotes!", explanationTR: "Tırnak içi yazılar string.", explanationEN: "Text in quotes is string." },
+            { type: "choice", questionTR: "42 hangi tip?", questionEN: "42 is which type?", choicesTR: ["int", "str", "float", "bool"], choicesEN: ["int", "str", "float", "bool"], correct: 0, hintTR: "Nokta yok!", hintEN: "No decimal!", explanationTR: "Noktasız sayı = int", explanationEN: "No decimal = int" }
+        ],
+        reward: { xp: 120, badgeId: "data_master", badgeNameTR: "Veri Ustası", badgeNameEN: "Data Master", badgeIcon: "📊", moodDelta: 8 }
+    },
+    {
+        id: 2, titleTR: "Koşullu İfadeler (if-elif-else)", titleEN: "Conditional Statements",
+        iconClass: "fa-sitemap", color: "#06D6A0",
+        storyMissionTR: "🔀 Görev 3: Karar mekanizması! Robotlara if-elif-else ile karar vermeyi öğret!",
+        storyMissionEN: "🔀 Mission 3: Decision making! Teach robots to decide with if-elif-else!",
+        learnTR: "<p>Hayatta sürekli karar veririz: 'Hava yağmurluysa şemsiye al!'</p><p><strong>if</strong>: İlk koşul<br><strong>elif</strong>: Değilse eğer<br><strong>else</strong>: Hiçbiri değilse</p><p>Karşılaştırma: <code>==</code> eşit, <code>></code> büyük, <code><</code> küçük</p>",
+        learnEN: "<p>We constantly make decisions: 'If it's raining, take umbrella!'</p><p><strong>if</strong>: First condition<br><strong>elif</strong>: Else if<br><strong>else</strong>: If none</p><p>Comparison: <code>==</code> equal, <code>></code> greater, <code><</code> less</p>",
+        examplesTR: [
+            { title: "Basit if", code: "enerji = 80\nif enerji > 50:\n    print(\"Çalış!\")", explanation: "Koşul doğruysa çalışır." },
+            { title: "if-else", code: "x = 30\nif x > 25:\n    print(\"Sıcak\")\nelse:\n    print(\"Normal\")", explanation: "İki seçenek." },
+            { title: "if-elif-else", code: "puan = 75\nif puan >= 90:\n    print(\"A\")\nelif puan >= 70:\n    print(\"B\")\nelse:\n    print(\"C\")", explanation: "Çoklu seçenek." }
+        ],
+        examplesEN: [
+            { title: "Simple if", code: "energy = 80\nif energy > 50:\n    print(\"Work!\")", explanation: "Runs if condition true." },
+            { title: "if-else", code: "x = 30\nif x > 25:\n    print(\"Hot\")\nelse:\n    print(\"Normal\")", explanation: "Two options." },
+            { title: "if-elif-else", code: "score = 75\nif score >= 90:\n    print(\"A\")\nelif score >= 70:\n    print(\"B\")\nelse:\n    print(\"C\")", explanation: "Multiple options." }
+        ],
+        miniTryType: "choose-path",
+        miniTryTR: { question: "enerji = 30 ise ne olur?", code: "if enerji > 50:\n    print(\"Çalış\")\nelse:\n    print(\"Şarj\")", options: ["Çalış", "Şarj"], answer: 1 },
+        miniTryEN: { question: "If energy = 30, what happens?", code: "if energy > 50:\n    print(\"Work\")\nelse:\n    print(\"Charge\")", options: ["Work", "Charge"], answer: 1 },
+        challengesTR: [
+            "Enerji 20'den azsa \"Şarj gerekli\", değilse \"Çalışıyor\" yazdıran kod.",
+            "Yaş değişkenine göre çocuk/genç/yetişkin yazan kod."
+        ],
+        challengesEN: [
+            "Code that prints 'Charge needed' if energy < 20, else 'Working'.",
+            "Code that prints child/teen/adult based on age variable."
+        ],
+        starterCode: "# Robot karar versin!\nenerji = 45\n\nif enerji > 80:\n    print(\"Koş!\")\nelif enerji > 50:\n    print(\"Yürü\")\nelse:\n    print(\"Şarj ol!\")",
+        quizzes: [
+            { type: "choice", questionTR: "if 5 > 3: ne zaman çalışır?", questionEN: "When does if 5 > 3: run?", choicesTR: ["Her zaman", "Hiçbir zaman", "Bazen", "Bilinmez"], choicesEN: ["Always", "Never", "Sometimes", "Unknown"], correct: 0, hintTR: "5, 3'ten büyük mü?", hintEN: "Is 5 greater than 3?", explanationTR: "5>3 her zaman True.", explanationEN: "5>3 is always True." },
+            { type: "choice", questionTR: "== ne yapar?", questionEN: "What does == do?", choicesTR: ["Eşitlik kontrol", "Atama", "Toplama", "Çarpma"], choicesEN: ["Check equality", "Assign", "Add", "Multiply"], correct: 0, hintTR: "= atama, == karşılaştırma!", hintEN: "= assign, == compare!", explanationTR: "== eşitlik karşılaştırır.", explanationEN: "== checks equality." }
+        ],
+        reward: { xp: 150, badgeId: "decision_maker", badgeNameTR: "Karar Ustası", badgeNameEN: "Decision Maker", badgeIcon: "🧠", moodDelta: 10 }
+    },
+    {
+        id: 3, titleTR: "Döngüler (for/while)", titleEN: "Loops (for/while)",
+        iconClass: "fa-redo", color: "#118AB2",
+        storyMissionTR: "🔄 Görev 4: Tekrar gücü! Döngülerle robotlara aynı işi kolayca tekrarlatmayı öğret!",
+        storyMissionEN: "🔄 Mission 4: Power of repetition! Teach robots to repeat tasks easily with loops!",
+        learnTR: "<p>Aynı işi 100 kere yazmak yorucu! Döngüler bunu kolaylaştırır. 🔁</p><p><strong>for</strong>: Belirli sayıda tekrar<br><code>for i in range(5):</code> → 5 kere (0,1,2,3,4)<br><strong>while</strong>: Koşul doğru olduğu sürece<br><code>while x > 0:</code></p>",
+        learnEN: "<p>Writing same thing 100 times is tiring! Loops make it easy. 🔁</p><p><strong>for</strong>: Fixed repetitions<br><code>for i in range(5):</code> → 5 times (0,1,2,3,4)<br><strong>while</strong>: While condition true<br><code>while x > 0:</code></p>",
+        examplesTR: [
+            { title: "for ile Sayma", code: "for i in range(5):\n    print(f\"Bip {i}!\")", explanation: "0'dan 4'e 5 kere tekrar." },
+            { title: "Liste Üzerinde", code: "robotlar = [\"A\", \"B\", \"C\"]\nfor r in robotlar:\n    print(r)", explanation: "Her eleman için çalışır." },
+            { title: "while Döngüsü", code: "x = 3\nwhile x > 0:\n    print(x)\n    x = x - 1", explanation: "Koşul False olana kadar." }
+        ],
+        examplesEN: [
+            { title: "Counting with for", code: "for i in range(5):\n    print(f\"Beep {i}!\")", explanation: "Repeats 5 times, 0 to 4." },
+            { title: "Over a List", code: "robots = [\"A\", \"B\", \"C\"]\nfor r in robots:\n    print(r)", explanation: "Runs for each element." },
+            { title: "while Loop", code: "x = 3\nwhile x > 0:\n    print(x)\n    x = x - 1", explanation: "Until condition is False." }
+        ],
+        miniTryType: "loop-pattern",
+        miniTryTR: { question: "range(4) kaç kere döner?", options: ["3", "4", "5", "0"], answer: 1 },
+        miniTryEN: { question: "How many times does range(4) loop?", options: ["3", "4", "5", "0"], answer: 1 },
+        challengesTR: [
+            "1'den 10'a kadar sayıları for döngüsüyle yazdır.",
+            "while döngüsüyle 5'ten geriye say (5,4,3,2,1,0)."
+        ],
+        challengesEN: [
+            "Print numbers 1 to 10 using for loop.",
+            "Count down from 5 to 0 using while loop."
+        ],
+        starterCode: "# Robot 5 kere bip sesi!\nfor i in range(5):\n    print(f\"🤖 Bip #{i+1}!\")\n\nprint(\"Bitti!\")",
+        quizzes: [
+            { type: "choice", questionTR: "range(3) ne üretir?", questionEN: "What does range(3) produce?", choicesTR: ["0, 1, 2", "1, 2, 3", "0, 1, 2, 3", "3"], choicesEN: ["0, 1, 2", "1, 2, 3", "0, 1, 2, 3", "3"], correct: 0, hintTR: "0'dan başlar, 3'e kadar!", hintEN: "Starts at 0, up to 3!", explanationTR: "range(3) = 0, 1, 2", explanationEN: "range(3) = 0, 1, 2" },
+            { type: "choice", questionTR: "for döngüsü ne zaman biter?", questionEN: "When does for loop end?", choicesTR: ["Elemanlar bitince", "Hata olunca", "Asla", "1 saniye sonra"], choicesEN: ["When elements end", "On error", "Never", "After 1 sec"], correct: 0, hintTR: "Tüm elemanları gezer!", hintEN: "Goes through all!", explanationTR: "Tüm elemanlardan sonra biter.", explanationEN: "Ends after all elements." }
+        ],
+        reward: { xp: 160, badgeId: "loop_hero", badgeNameTR: "Döngü Kahramanı", badgeNameEN: "Loop Hero", badgeIcon: "🔄", moodDelta: 10 }
+    },
+    {
+        id: 4, titleTR: "Fonksiyonlar", titleEN: "Functions",
+        iconClass: "fa-cogs", color: "#7209B7",
+        storyMissionTR: "⚡ Görev 5: Süper güçler! Fonksiyonlarla robotlara yeniden kullanılabilir yetenekler ver!",
+        storyMissionEN: "⚡ Mission 5: Super powers! Give robots reusable abilities with functions!",
+        learnTR: "<p>Fonksiyonlar, tekrar kullanılabilen kod bloklarıdır - tarif gibi! 🍕</p><p><strong>def</strong>: Fonksiyon tanımla<br><strong>parametreler</strong>: Gelen bilgiler<br><strong>return</strong>: Değer döndür</p>",
+        learnEN: "<p>Functions are reusable code blocks - like recipes! 🍕</p><p><strong>def</strong>: Define function<br><strong>parameters</strong>: Incoming info<br><strong>return</strong>: Return value</p>",
+        examplesTR: [
+            { title: "Basit Fonksiyon", code: "def selamla():\n    print(\"Merhaba!\")\n\nselamla()", explanation: "Tanımla, sonra çağır." },
+            { title: "Parametreli", code: "def selamla(isim):\n    print(f\"Merhaba {isim}!\")\n\nselamla(\"Alpha\")", explanation: "Her çağrıda farklı isim." },
+            { title: "Return", code: "def topla(a, b):\n    return a + b\n\nsonuc = topla(5, 3)\nprint(sonuc)", explanation: "Değer döndürür." }
+        ],
+        examplesEN: [
+            { title: "Simple Function", code: "def greet():\n    print(\"Hello!\")\n\ngreet()", explanation: "Define, then call." },
+            { title: "With Parameter", code: "def greet(name):\n    print(f\"Hello {name}!\")\n\ngreet(\"Alpha\")", explanation: "Different name each call." },
+            { title: "Return", code: "def add(a, b):\n    return a + b\n\nresult = add(5, 3)\nprint(result)", explanation: "Returns value." }
+        ],
+        miniTryType: "function-builder",
+        miniTryTR: { question: "İki sayıyı çarpan fonksiyondaki boşluk ne olmalı?", code: "def carp(a, b):\n    return ___", options: ["a * b", "a + b", "a - b", "a / b"], answer: 0 },
+        miniTryEN: { question: "What goes in the blank for multiply function?", code: "def multiply(a, b):\n    return ___", options: ["a * b", "a + b", "a - b", "a / b"], answer: 0 },
+        challengesTR: [
+            "Karenin alanını hesaplayan fonksiyon yaz.",
+            "İki parametre alıp büyük olanı döndüren fonksiyon."
+        ],
+        challengesEN: [
+            "Write function that calculates area of a square.",
+            "Function that takes two parameters and returns the larger one."
+        ],
+        starterCode: "# Robot komutu fonksiyonu\ndef robot_konus(mesaj):\n    print(f\"🤖: {mesaj}\")\n\nrobot_konus(\"Merhaba!\")\nrobot_konus(\"Python harika!\")",
+        quizzes: [
+            { type: "choice", questionTR: "def ne yapar?", questionEN: "What does def do?", choicesTR: ["Fonksiyon tanımlar", "Değişken tanımlar", "Döngü başlatır", "Yazdırır"], choicesEN: ["Defines function", "Defines variable", "Starts loop", "Prints"], correct: 0, hintTR: "def = define!", hintEN: "def = define!", explanationTR: "def fonksiyon tanımlar.", explanationEN: "def defines function." },
+            { type: "choice", questionTR: "return ne yapar?", questionEN: "What does return do?", choicesTR: ["Değer döndürür", "Döngü başlatır", "Hata yazdırır", "Program kapatır"], choicesEN: ["Returns value", "Starts loop", "Prints error", "Closes program"], correct: 0, hintTR: "Geri getir!", hintEN: "Bring back!", explanationTR: "return değer geri verir.", explanationEN: "return gives back value." }
+        ],
+        reward: { xp: 180, badgeId: "function_wizard", badgeNameTR: "Fonksiyon Büyücüsü", badgeNameEN: "Function Wizard", badgeIcon: "🧙", moodDelta: 12 }
+    },
+    {
+        id: 5, titleTR: "Listeler ve Sözlükler", titleEN: "Lists & Dictionaries",
+        iconClass: "fa-list", color: "#FF9E00",
+        storyMissionTR: "📦 Görev 6: Robot envanteri! Listeler ve sözlüklerle robot hafızasını organize et!",
+        storyMissionEN: "📦 Mission 6: Robot inventory! Organize robot memory with lists and dictionaries!",
+        learnTR: "<p><strong>Liste</strong>: Sıralı koleksiyon <code>[\"A\", \"B\", \"C\"]</code><br>İlk eleman: <code>liste[0]</code></p><p><strong>Sözlük</strong>: Anahtar-değer çifti <code>{\"isim\": \"Alpha\", \"enerji\": 100}</code><br>Değere erişim: <code>sozluk[\"isim\"]</code></p>",
+        learnEN: "<p><strong>List</strong>: Ordered collection <code>[\"A\", \"B\", \"C\"]</code><br>First element: <code>list[0]</code></p><p><strong>Dictionary</strong>: Key-value pairs <code>{\"name\": \"Alpha\", \"energy\": 100}</code><br>Access: <code>dict[\"name\"]</code></p>",
+        examplesTR: [
+            { title: "Liste", code: "renkler = [\"kırmızı\", \"mavi\"]\nprint(renkler[0])\nrenkler.append(\"yeşil\")", explanation: "Köşeli parantez, append ekler." },
+            { title: "Sözlük", code: "robot = {\"isim\": \"Alpha\", \"enerji\": 100}\nprint(robot[\"isim\"])", explanation: "Süslü parantez, anahtarla eriş." },
+            { title: "len()", code: "liste = [1, 2, 3, 4, 5]\nprint(len(liste))", explanation: "len() uzunluk verir." }
+        ],
+        examplesEN: [
+            { title: "List", code: "colors = [\"red\", \"blue\"]\nprint(colors[0])\ncolors.append(\"green\")", explanation: "Square brackets, append adds." },
+            { title: "Dictionary", code: "robot = {\"name\": \"Alpha\", \"energy\": 100}\nprint(robot[\"name\"])", explanation: "Curly braces, access by key." },
+            { title: "len()", code: "mylist = [1, 2, 3, 4, 5]\nprint(len(mylist))", explanation: "len() gives length." }
+        ],
+        miniTryType: "inventory-manager",
+        miniTryTR: { question: "Bu listede kaç eleman var: [\"A\", \"B\", \"C\", \"D\"]?", options: ["3", "4", "5", "2"], answer: 1 },
+        miniTryEN: { question: "How many elements in: [\"A\", \"B\", \"C\", \"D\"]?", options: ["3", "4", "5", "2"], answer: 1 },
+        challengesTR: [
+            "3 robot ismi içeren liste oluştur, for döngüsüyle yazdır.",
+            "Robot bilgilerini tutan sözlük oluştur (isim, enerji, hız)."
+        ],
+        challengesEN: [
+            "Create list with 3 robot names, print with for loop.",
+            "Create dictionary holding robot info (name, energy, speed)."
+        ],
+        starterCode: "# Robot envanteri\nrobotlar = [\"Alpha\", \"Beta\", \"Gamma\"]\nrobotlar.append(\"Delta\")\nprint(robotlar)\n\nalpha = {\"isim\": \"Alpha\", \"enerji\": 100}\nprint(alpha[\"enerji\"])",
+        quizzes: [
+            { type: "choice", questionTR: "liste[0] ne döner?", questionEN: "What does list[0] return?", choicesTR: ["İlk eleman", "Son eleman", "Uzunluk", "Hata"], choicesEN: ["First element", "Last element", "Length", "Error"], correct: 0, hintTR: "İndeks 0'dan başlar!", hintEN: "Index starts at 0!", explanationTR: "[0] = ilk eleman", explanationEN: "[0] = first element" },
+            { type: "choice", questionTR: "append() ne yapar?", questionEN: "What does append() do?", choicesTR: ["Eleman ekler", "Eleman siler", "Sıralar", "Temizler"], choicesEN: ["Adds element", "Removes element", "Sorts", "Clears"], correct: 0, hintTR: "append = ekle!", hintEN: "append = add!", explanationTR: "Listenin sonuna ekler.", explanationEN: "Adds to end of list." }
+        ],
+        reward: { xp: 170, badgeId: "data_organizer", badgeNameTR: "Veri Organizatörü", badgeNameEN: "Data Organizer", badgeIcon: "📦", moodDelta: 12 }
+    },
+    {
+        id: 6, titleTR: "Hata Yönetimi (try-except)", titleEN: "Error Handling",
+        iconClass: "fa-bug", color: "#EF476F",
+        storyMissionTR: "🛡️ Görev 7: Hata kalkanı! try-except ile robotların çökmesini engelle!",
+        storyMissionEN: "🛡️ Mission 7: Error shield! Prevent robots from crashing with try-except!",
+        learnTR: "<p>Programlar hata yapabilir ama çökmek zorunda değil! 🛡️</p><p><strong>try</strong>: Hata olabilecek kod<br><strong>except</strong>: Hata olursa ne yapılacak</p><p>Yaygın hatalar: ZeroDivisionError, ValueError, TypeError</p>",
+        learnEN: "<p>Programs can make mistakes but don't have to crash! 🛡️</p><p><strong>try</strong>: Code that might error<br><strong>except</strong>: What to do if error</p><p>Common errors: ZeroDivisionError, ValueError, TypeError</p>",
+        examplesTR: [
+            { title: "try-except", code: "try:\n    x = 10 / 0\nexcept:\n    print(\"Hata!\")", explanation: "Hata yakalanır, çökmez." },
+            { title: "Özel Hata", code: "try:\n    int(\"abc\")\nexcept ValueError:\n    print(\"Sayı değil!\")", explanation: "Belirli hata türünü yakala." },
+            { title: "Çoklu except", code: "try:\n    x = 10 / 0\nexcept ZeroDivisionError:\n    print(\"Sıfıra bölme!\")\nexcept:\n    print(\"Başka hata!\")", explanation: "Farklı hatalar için farklı işlemler." }
+        ],
+        examplesEN: [
+            { title: "try-except", code: "try:\n    x = 10 / 0\nexcept:\n    print(\"Error!\")", explanation: "Error caught, no crash." },
+            { title: "Specific Error", code: "try:\n    int(\"abc\")\nexcept ValueError:\n    print(\"Not a number!\")", explanation: "Catch specific error type." },
+            { title: "Multiple except", code: "try:\n    x = 10 / 0\nexcept ZeroDivisionError:\n    print(\"Division by zero!\")\nexcept:\n    print(\"Other error!\")", explanation: "Different actions for different errors." }
+        ],
+        miniTryType: "bug-fix",
+        miniTryTR: { question: "10/0 hangi hatayı verir?", options: ["ZeroDivisionError", "ValueError", "TypeError", "SyntaxError"], answer: 0 },
+        miniTryEN: { question: "What error does 10/0 give?", options: ["ZeroDivisionError", "ValueError", "TypeError", "SyntaxError"], answer: 0 },
+        challengesTR: [
+            "Kullanıcıdan sayı al, hata olursa 'Geçersiz sayı' yazdır.",
+            "Liste indeksi hatalarını yakalayan try-except bloğu yaz."
+        ],
+        challengesEN: [
+            "Get number from user, print 'Invalid number' if error.",
+            "Write try-except block that catches list index errors."
+        ],
+        starterCode: "# Güvenli bölme\ndef guvenli_bol(a, b):\n    try:\n        return a / b\n    except ZeroDivisionError:\n        return \"Sıfıra bölemezsin!\"\n\nprint(guvenli_bol(10, 2))\nprint(guvenli_bol(10, 0))",
+        quizzes: [
+            { type: "choice", questionTR: "try bloğu ne için?", questionEN: "What is try block for?", choicesTR: ["Hatalı olabilecek kod", "Döngü", "Fonksiyon", "Değişken"], choicesEN: ["Code that might error", "Loop", "Function", "Variable"], correct: 0, hintTR: "try = dene!", hintEN: "try = attempt!", explanationTR: "Hata riski olan kodu dener.", explanationEN: "Attempts code that might fail." },
+            { type: "choice", questionTR: "except ne zaman çalışır?", questionEN: "When does except run?", choicesTR: ["Hata olunca", "Her zaman", "Hiçbir zaman", "Başlangıçta"], choicesEN: ["On error", "Always", "Never", "At start"], correct: 0, hintTR: "Hata yakala!", hintEN: "Catch error!", explanationTR: "Sadece hata olunca çalışır.", explanationEN: "Only runs on error." }
+        ],
+        reward: { xp: 160, badgeId: "bug_hunter", badgeNameTR: "Hata Avcısı", badgeNameEN: "Bug Hunter", badgeIcon: "🐛", moodDelta: 10 }
+    },
+    {
+        id: 7, titleTR: "Dosya İşlemleri", titleEN: "File Operations",
+        iconClass: "fa-save", color: "#4ECDC4",
+        storyMissionTR: "💾 Görev 8: Veri arşivi! Robotların hafızasını kalıcı hale getir!",
+        storyMissionEN: "💾 Mission 8: Data archive! Make robot memory permanent!",
+        learnTR: "<p>Dosyalar bilgiyi kalıcı saklar! 💾</p><p><strong>\"r\"</strong>: Okuma<br><strong>\"w\"</strong>: Yazma (üzerine yazar)<br><strong>\"a\"</strong>: Ekleme</p><p>⚠️ Tarayıcıda simülasyon yapacağız!</p>",
+        learnEN: "<p>Files store info permanently! 💾</p><p><strong>\"r\"</strong>: Read<br><strong>\"w\"</strong>: Write (overwrites)<br><strong>\"a\"</strong>: Append</p><p>⚠️ We'll simulate in browser!</p>",
+        examplesTR: [
+            { title: "Simülasyon", code: "# Tarayıcı simülasyonu\ndosya = \"Alpha,100\\nBeta,80\"\nfor satir in dosya.split('\\n'):\n    print(satir)", explanation: "Satır satır okuma simülasyonu." },
+            { title: "Satır Listesi", code: "satirlar = [\"1. Alpha\", \"2. Beta\", \"3. Gamma\"]\nfor s in satirlar:\n    print(s)", explanation: "Listeyi dosya gibi simüle et." },
+            { title: "Dosya Yazma Simülasyonu", code: "icerik = \"\"\nicerik += \"Robot Kayıtları\\n\"\nicerik += \"Alpha: Aktif\\n\"\nicerik += \"Beta: Şarjda\\n\"\nprint(icerik)", explanation: "String birleştirme ile dosya yazma simülasyonu." }
+        ],
+        examplesEN: [
+            { title: "Simulation", code: "# Browser simulation\nfile = \"Alpha,100\\nBeta,80\"\nfor line in file.split('\\n'):\n    print(line)", explanation: "Line by line reading simulation." },
+            { title: "Line List", code: "lines = [\"1. Alpha\", \"2. Beta\", \"3. Gamma\"]\nfor l in lines:\n    print(l)", explanation: "Simulate file with list." },
+            { title: "File Write Simulation", code: "content = \"\"\ncontent += \"Robot Records\\n\"\ncontent += \"Alpha: Active\\n\"\ncontent += \"Beta: Charging\\n\"\nprint(content)", explanation: "File writing simulation with string concatenation." }
+        ],
+        miniTryType: "fill-blank",
+        miniTryTR: { question: "Dosyaya eklemek için mod: (tek harf)", answer: "a" },
+        miniTryEN: { question: "Mode to append to file: (single letter)", answer: "a" },
+        challengesTR: [
+            "Robot bilgilerini içeren CSV formatında string oluştur.",
+            "JSON formatında robot verisi oluştur, geri çevir."
+        ],
+        challengesEN: [
+            "Create CSV formatted string containing robot information.",
+            "Create robot data in JSON format, convert it back."
+        ],
+        starterCode: "# Dosya simülasyonu\nveri = \"isim,enerji\\nAlpha,100\\nBeta,80\"\n\nfor satir in veri.split('\\n'):\n    print(satir)",
+        quizzes: [
+            { type: "choice", questionTR: "'w' modu ne yapar?", questionEN: "What does 'w' mode do?", choicesTR: ["Yazar (üzerine)", "Okur", "Siler", "Kopyalar"], choicesEN: ["Writes (overwrites)", "Reads", "Deletes", "Copies"], correct: 0, hintTR: "w = write!", hintEN: "w = write!", explanationTR: "Yazar, mevcut içeriği siler.", explanationEN: "Writes, erases existing content." },
+            { type: "choice", questionTR: "'r' modu ne yapar?", questionEN: "What does 'r' mode do?", choicesTR: ["Okur", "Yazar", "Siler", "Yeniden adlandırır"], choicesEN: ["Reads", "Writes", "Deletes", "Renames"], correct: 0, hintTR: "r = read!", hintEN: "r = read!", explanationTR: "Dosyayı okur.", explanationEN: "Reads the file." }
+        ],
+        reward: { xp: 150, badgeId: "data_saver", badgeNameTR: "Veri Koruyucu", badgeNameEN: "Data Saver", badgeIcon: "💾", moodDelta: 10 }
+    },
+    {
+        id: 8, titleTR: "Nesne Yönelimli Programlama", titleEN: "Object Oriented Programming",
+        iconClass: "fa-robot", color: "#FF6B8B",
+        storyMissionTR: "🏗️ Görev 9: Robot fabrikası! Kendi robot sınıfını oluştur!",
+        storyMissionEN: "🏗️ Mission 9: Robot factory! Create your own robot class!",
+        learnTR: "<p><strong>Sınıf (class)</strong> = Şablon (Robot planı)<br><strong>Nesne (object)</strong> = Sınıftan üretilen örnek</p><p><code>def __init__(self):</code> kurucu metod<br><code>self</code> nesnenin kendisi</p>",
+        learnEN: "<p><strong>Class</strong> = Template (Robot plan)<br><strong>Object</strong> = Instance from class</p><p><code>def __init__(self):</code> constructor<br><code>self</code> the object itself</p>",
+        examplesTR: [
+            { title: "Sınıf", code: "class Robot:\n    def __init__(self, isim):\n        self.isim = isim\n    def selamla(self):\n        print(f\"Ben {self.isim}!\")\n\nr = Robot(\"Alpha\")\nr.selamla()", explanation: "__init__ her oluşturulduğunda çalışır." },
+            { title: "Birden Fazla Metod", code: "class Robot:\n    def __init__(self, isim, enerji):\n        self.isim = isim\n        self.enerji = enerji\n    def durum(self):\n        print(f\"{self.isim}: {self.enerji} enerji\")\n    def sarj(self, miktar):\n        self.enerji += miktar\n\nr = Robot(\"Beta\", 50)\nr.durum()\nr.sarj(30)\nr.durum()", explanation: "Birden fazla metod içeren sınıf." },
+            { title: "Kalıtım", code: "class Robot:\n    def __init__(self, isim):\n        self.isim = isim\n    def selamla(self):\n        print(f\"Merhaba, ben {self.isim}\")\n\nclass SavasciRobot(Robot):\n    def __init__(self, isim, guc):\n        super().__init__(isim)\n        self.guc = guc\n    def saldir(self):\n        print(f\"{self.isim} {self.guc} gücünde saldırıyor!\")\n\ns = SavasciRobot(\"Warrior\", 100)\ns.selamla()\ns.saldir()", explanation: "Kalıtım ile sınıf genişletme." }
+        ],
+        examplesEN: [
+            { title: "Class", code: "class Robot:\n    def __init__(self, name):\n        self.name = name\n    def greet(self):\n        print(f\"I am {self.name}!\")\n\nr = Robot(\"Alpha\")\nr.greet()", explanation: "__init__ runs when created." },
+            { title: "Multiple Methods", code: "class Robot:\n    def __init__(self, name, energy):\n        self.name = name\n        self.energy = energy\n    def status(self):\n        print(f\"{self.name}: {self.energy} energy\")\n    def charge(self, amount):\n        self.energy += amount\n\nr = Robot(\"Beta\", 50)\nr.status()\nr.charge(30)\nr.status()", explanation: "Class with multiple methods." },
+            { title: "Inheritance", code: "class Robot:\n    def __init__(self, name):\n        self.name = name\n    def greet(self):\n        print(f\"Hello, I am {self.name}\")\n\nclass WarriorRobot(Robot):\n    def __init__(self, name, power):\n        super().__init__(name)\n        self.power = power\n    def attack(self):\n        print(f\"{self.name} attacks with {self.power} power!\")\n\nw = WarriorRobot(\"Warrior\", 100)\nw.greet()\nw.attack()", explanation: "Extending class with inheritance." }
+        ],
+        miniTryType: "robot-builder",
+        miniTryTR: { question: "Robot özelliğine nasıl erişilir?", options: ["self.isim", "isim", "Robot.isim", "this.isim"], answer: 0 },
+        miniTryEN: { question: "How to access robot property?", options: ["self.name", "name", "Robot.name", "this.name"], answer: 0 },
+        challengesTR: [
+            "Robot sınıfı oluştur: isim, enerji, durum() metodu.",
+            "Kalıtım: Robot sınıfından UcanRobot sınıfı türet."
+        ],
+        challengesEN: [
+            "Create Robot class: name, energy, status() method.",
+            "Inheritance: create FlyingRobot class from Robot."
+        ],
+        starterCode: "class Robot:\n    def __init__(self, isim, enerji):\n        self.isim = isim\n        self.enerji = enerji\n    \n    def durum(self):\n        print(f\"{self.isim}: Enerji {self.enerji}\")\n\nalpha = Robot(\"Alpha\", 100)\nalpha.durum()",
+        quizzes: [
+            { type: "choice", questionTR: "class ne tanımlar?", questionEN: "What does class define?", choicesTR: ["Şablon/sınıf", "Değişken", "Döngü", "Fonksiyon"], choicesEN: ["Template/class", "Variable", "Loop", "Function"], correct: 0, hintTR: "Nesne şablonu!", hintEN: "Object template!", explanationTR: "class sınıf/şablon tanımlar.", explanationEN: "class defines template." },
+            { type: "choice", questionTR: "__init__ ne zaman çalışır?", questionEN: "When does __init__ run?", choicesTR: ["Nesne oluşunca", "Program başında", "Program sonunda", "Hata olunca"], choicesEN: ["When object created", "Program start", "Program end", "On error"], correct: 0, hintTR: "İnit = initialize!", hintEN: "Init = initialize!", explanationTR: "Her yeni nesne oluşunca çalışır.", explanationEN: "Runs for each new object." }
+        ],
+        reward: { xp: 200, badgeId: "oop_master", badgeNameTR: "OOP Ustası", badgeNameEN: "OOP Master", badgeIcon: "🏗️", moodDelta: 15 }
+    },
+    {
+        id: 9, titleTR: "Modüller ve Kütüphaneler", titleEN: "Modules & Libraries",
+        iconClass: "fa-box-open", color: "#FFD166",
+        storyMissionTR: "📦 Görev 10: Süper güçler! Hazır Python kütüphanelerini kullan!",
+        storyMissionEN: "📦 Mission 10: Super powers! Use ready Python libraries!",
+        learnTR: "<p>Modüller hazır kod koleksiyonlarıdır! 📦</p><p><code>import random</code>: Rastgele sayılar<br><code>import math</code>: Matematik işlemleri<br><code>from datetime import datetime</code>: Tarih/saat</p>",
+        learnEN: "<p>Modules are ready code collections! 📦</p><p><code>import random</code>: Random numbers<br><code>import math</code>: Math operations<br><code>from datetime import datetime</code>: Date/time</p>",
+        examplesTR: [
+            { title: "random", code: "import random\nprint(random.randint(1, 100))", explanation: "1-100 arası rastgele sayı." },
+            { title: "math", code: "import math\nprint(math.pi)\nprint(math.sqrt(16))", explanation: "Pi ve karekök." },
+            { title: "datetime", code: "from datetime import datetime\nsimdi = datetime.now()\nprint(f\"Şu an: {simdi}\")", explanation: "Tarih ve saat." }
+        ],
+        examplesEN: [
+            { title: "random", code: "import random\nprint(random.randint(1, 100))", explanation: "Random number 1-100." },
+            { title: "math", code: "import math\nprint(math.pi)\nprint(math.sqrt(16))", explanation: "Pi and square root." },
+            { title: "datetime", code: "from datetime import datetime\nnow = datetime.now()\nprint(f\"Now: {now}\")", explanation: "Date and time." }
+        ],
+        miniTryType: "output-prediction",
+        miniTryTR: { question: "math.sqrt(25) ne döner?", options: ["5", "25", "5.0", "Hata"], answer: 2 },
+        miniTryEN: { question: "What does math.sqrt(25) return?", options: ["5", "25", "5.0", "Error"], answer: 2 },
+        challengesTR: [
+            "1-50 arası rastgele sayı üret.",
+            "Dairenin alanını hesapla (yarıçap 7, pi kullan)."
+        ],
+        challengesEN: [
+            "Generate random number between 1-50.",
+            "Calculate circle area (radius 7, use pi)."
+        ],
+        starterCode: "import random\nimport math\n\n# Rastgele robot enerjisi\nenerji = random.randint(50, 100)\nprint(f\"Robot enerjisi: {enerji}\")\n\n# Pi sayısı\nprint(f\"Pi: {math.pi:.2f}\")",
+        quizzes: [
+            { type: "choice", questionTR: "import ne yapar?", questionEN: "What does import do?", choicesTR: ["Modül yükler", "Değişken tanımlar", "Döngü başlatır", "Yazdırır"], choicesEN: ["Loads module", "Defines variable", "Starts loop", "Prints"], correct: 0, hintTR: "Dışarıdan al!", hintEN: "Bring from outside!", explanationTR: "Hazır modülü yükler.", explanationEN: "Loads ready module." },
+            { type: "choice", questionTR: "random.randint(1, 10) ne verir?", questionEN: "What does random.randint(1, 10) give?", choicesTR: ["1-10 arası sayı", "Her zaman 5", "Hata", "Liste"], choicesEN: ["Number 1-10", "Always 5", "Error", "List"], correct: 0, hintTR: "Rastgele!", hintEN: "Random!", explanationTR: "1-10 arası rastgele tam sayı.", explanationEN: "Random integer 1-10." }
+        ],
+        reward: { xp: 170, badgeId: "module_explorer", badgeNameTR: "Modül Kaşifi", badgeNameEN: "Module Explorer", badgeIcon: "📦", moodDelta: 12 }
+    },
+    {
+        id: 10, titleTR: "API ile Çalışma", titleEN: "Working with APIs",
+        iconClass: "fa-wifi", color: "#06D6A0",
+        storyMissionTR: "🌐 Görev 11: İnternet bağlantısı! Robotları web API'lerine bağla!",
+        storyMissionEN: "🌐 Mission 11: Internet connection! Connect robots to web APIs!",
+        learnTR: "<p>API = Programların konuştuğu dil 🌐</p><p>⚠️ Tarayıcıda gerçek API çağrıları yapamayız, simülasyon yapacağız!</p><p>Gerçek kodda: <code>import requests</code><br><code>response = requests.get(url)</code></p>",
+        learnEN: "<p>API = Language programs speak 🌐</p><p>⚠️ Can't make real API calls in browser, we'll simulate!</p><p>In real code: <code>import requests</code><br><code>response = requests.get(url)</code></p>",
+        examplesTR: [
+            { title: "API Simülasyonu", code: "# Tarayıcı simülasyonu\ndef fake_api():\n    return {'sicaklik': 25, 'sehir': 'İstanbul'}\n\nveri = fake_api()\nprint(f\"Şehir: {veri['sehir']}\")\nprint(f\"Sıcaklık: {veri['sicaklik']}°C\")", explanation: "Gerçek API yerine simülasyon." },
+            { title: "JSON Yanıtı", code: "import json\n# Simüle edilmiş API yanıtı\napi_yanit = '{\"success\": true, \"data\": {\"robots\": 5}}'\nveri = json.loads(api_yanit)\nprint(f\"Başarılı: {veri['success']}\")\nprint(f\"Robot sayısı: {veri['data']['robots']}\")", explanation: "JSON formatında API yanıtı." },
+            { title: "POST İsteği Simülasyonu", code: "def simule_post(url, data):\n    return {'status': 'success', 'received': data}\n\nyanit = simule_post('/api/robots', {'name': 'Alpha'})\nprint(f\"Durum: {yanit['status']}\")\nprint(f\"Alınan: {yanit['received']}\")", explanation: "POST isteği simülasyonu." }
+        ],
+        examplesEN: [
+            { title: "API Simulation", code: "# Browser simulation\ndef fake_api():\n    return {'temperature': 25, 'city': 'Istanbul'}\n\ndata = fake_api()\nprint(f\"City: {data['city']}\")\nprint(f\"Temperature: {data['temperature']}°C\")", explanation: "Simulation instead of real API." },
+            { title: "JSON Response", code: "import json\n# Simulated API response\napi_response = '{\"success\": true, \"data\": {\"robots\": 5}}'\ndata = json.loads(api_response)\nprint(f\"Success: {data['success']}\")\nprint(f\"Robot count: {data['data']['robots']}\")", explanation: "API response in JSON format." },
+            { title: "POST Request Simulation", code: "def simulate_post(url, data):\n    return {'status': 'success', 'received': data}\n\nresponse = simulate_post('/api/robots', {'name': 'Alpha'})\nprint(f\"Status: {response['status']}\")\nprint(f\"Received: {response['received']}\")", explanation: "POST request simulation." }
+        ],
+        miniTryType: "output-prediction",
+        miniTryTR: { question: "API neden kullanılır?", options: ["Veri almak/göndermek", "Dosya silmek", "Oyun oynamak", "Müzik dinlemek"], answer: 0 },
+        miniTryEN: { question: "Why are APIs used?", options: ["Get/send data", "Delete files", "Play games", "Listen music"], answer: 0 },
+        challengesTR: [
+            "Robot API simülasyonu: robot listesi döndüren fonksiyon.",
+            "JSON formatında robot verisi oluştur, ayrıştır."
+        ],
+        challengesEN: [
+            "Robot API simulation: function returning robot list.",
+            "Create robot data in JSON format, parse it."
+        ],
+        starterCode: "# API Simülasyonu\ndef robot_api(robot_id):\n    veritabani = {\n        1: {'isim': 'Alpha', 'durum': 'aktif'},\n        2: {'isim': 'Beta', 'durum': 'şarj'},\n    }\n    return veritabani.get(robot_id, {'hata': 'Bulunamadı'})\n\nprint(robot_api(1))\nprint(robot_api(2))\nprint(robot_api(99))",
+        quizzes: [
+            { type: "choice", questionTR: "API ne demek?", questionEN: "What does API mean?", choicesTR: ["Application Programming Interface", "Automatic Program Installation", "Advanced Python Integration", "Active Protocol Internet"], choicesEN: ["Application Programming Interface", "Automatic Program Installation", "Advanced Python Integration", "Active Protocol Internet"], correct: 0, hintTR: "Uygulama Programlama Arayüzü!", hintEN: "Application Programming Interface!", explanationTR: "API = Uygulama Programlama Arayüzü", explanationEN: "API = Application Programming Interface" },
+            { type: "choice", questionTR: "requests.get() ne yapar?", questionEN: "What does requests.get() do?", choicesTR: ["Veri çeker", "Veri gönderir", "Dosya siler", "Program kapatır"], choicesEN: ["Gets data", "Sends data", "Deletes file", "Closes program"], correct: 0, hintTR: "get = al!", hintEN: "get = retrieve!", explanationTR: "URL'den veri çeker.", explanationEN: "Gets data from URL." }
+        ],
+        reward: { xp: 180, badgeId: "api_connector", badgeNameTR: "API Bağlayıcı", badgeNameEN: "API Connector", badgeIcon: "🌐", moodDelta: 12 }
+    },
+    {
+        id: 11, titleTR: "Mini Proje: Robot İletişimi", titleEN: "Mini Project: Robot Communication",
+        iconClass: "fa-rocket", color: "#7209B7",
+        storyMissionTR: "🚀 Final Görevi: Tüm öğrendiklerini kullan! Robotlarla tam iletişim kuran sistem yaz!",
+        storyMissionEN: "🚀 Final Mission: Use everything you learned! Write a full robot communication system!",
+        learnTR: "<p>Artık tüm parçaları birleştirme zamanı! 🎯</p><p>Bu projede:<br>• Sınıflar<br>• Fonksiyonlar<br>• Koşullar<br>• Döngüler<br>• Hata yönetimi<br>• Veri yapıları<br>hepsini kullanacaksın!</p>",
+        learnEN: "<p>Time to put all pieces together! 🎯</p><p>In this project:<br>• Classes<br>• Functions<br>• Conditions<br>• Loops<br>• Error handling<br>• Data structures<br>you'll use all!</p>",
+        examplesTR: [
+            { title: "Robot Sistemi", code: "class RobotIletisim:\n    def __init__(self):\n        self.robotlar = {}\n    \n    def ekle(self, isim, enerji):\n        self.robotlar[isim] = {'enerji': enerji}\n    \n    def konus(self, isim, mesaj):\n        if isim in self.robotlar:\n            print(f\"{isim}: {mesaj}\")\n\nsistem = RobotIletisim()\nsistem.ekle('Alpha', 100)\nsistem.konus('Alpha', 'Merhaba!')", explanation: "Tam robot sistemi." },
+            { title: "Komut Sistemi", code: "class RobotKomut:\n    komutlar = ['git', 'dur', 'konus', 'sarj']\n    \n    def calistir(self, komut, parametre=None):\n        if komut in self.komutlar:\n            print(f\"{komut} komutu çalıştırılıyor...\")\n            if parametre:\n                print(f\"Parametre: {parametre}\")\n        else:\n            print(f\"Bilinmeyen komut: {komut}\")\n\nrk = RobotKomut()\nrk.calistir('git', 'ileri')\nrk.calistir('dans')", explanation: "Robot komut sistemi." },
+            { title: "Çoklu Robot Yönetimi", code: "class RobotYonetici:\n    def __init__(self):\n        self.robotlar = []\n    \n    def robot_ekle(self, isim):\n        self.robotlar.append({'isim': isim, 'aktif': True})\n        print(f\"{isim} eklendi.\")\n    \n    def tum_robotlar(self):\n        for r in self.robotlar:\n            durum = 'Aktif' if r['aktif'] else 'Pasif'\n            print(f\"- {r['isim']}: {durum}\")\n\nry = RobotYonetici()\nry.robot_ekle('Alpha')\nry.robot_ekle('Beta')\nry.tum_robotlar()", explanation: "Çoklu robot yönetimi." }
+        ],
+        examplesEN: [
+            { title: "Robot System", code: "class RobotComm:\n    def __init__(self):\n        self.robots = {}\n    \n    def add(self, name, energy):\n        self.robots[name] = {'energy': energy}\n    \n    def speak(self, name, msg):\n        if name in self.robots:\n            print(f\"{name}: {msg}\")\n\nsystem = RobotComm()\nsystem.add('Alpha', 100)\nsystem.speak('Alpha', 'Hello!')", explanation: "Full robot system." },
+            { title: "Command System", code: "class RobotCommand:\n    commands = ['go', 'stop', 'speak', 'charge']\n    \n    def execute(self, command, parameter=None):\n        if command in self.commands:\n            print(f\"Executing {command} command...\")\n            if parameter:\n                print(f\"Parameter: {parameter}\")\n        else:\n            print(f\"Unknown command: {command}\")\n\nrc = RobotCommand()\nrc.execute('go', 'forward')\nrc.execute('dance')", explanation: "Robot command system." },
+            { title: "Multi-Robot Management", code: "class RobotManager:\n    def __init__(self):\n        self.robots = []\n    \n    def add_robot(self, name):\n        self.robots.append({'name': name, 'active': True})\n        print(f\"{name} added.\")\n    \n    def all_robots(self):\n        for r in self.robots:\n            status = 'Active' if r['active'] else 'Inactive'\n            print(f\"- {r['name']}: {status}\")\n\nrm = RobotManager()\nrm.add_robot('Alpha')\nrm.add_robot('Beta')\nrm.all_robots()", explanation: "Multi-robot management." }
+        ],
+        miniTryType: "project-build",
+        miniTryTR: { question: "En önemli programlama becerisi ne?", options: ["Pratik yapmak", "Ezberlemek", "Hızlı yazmak", "Çok okumak"], answer: 0 },
+        miniTryEN: { question: "Most important programming skill?", options: ["Practice", "Memorizing", "Fast typing", "Reading a lot"], answer: 0 },
+        challengesTR: [
+            "Robot yönetim sistemi: ekle, listele, komut gönder.",
+            "Robot veritabanı: JSON ile kaydet/yükle."
+        ],
+        challengesEN: [
+            "Robot management system: add, list, send command.",
+            "Robot database: save/load with JSON."
+        ],
+        starterCode: "# Robot İletişim Sistemi\nclass Robot:\n    def __init__(self, isim):\n        self.isim = isim\n        self.enerji = 100\n        self.mesajlar = []\n    \n    def konus(self, mesaj):\n        if self.enerji > 0:\n            print(f\"🤖 {self.isim}: {mesaj}\")\n            self.enerji -= 5\n        else:\n            print(f\"{self.isim} şarj gerekli!\")\n    \n    def sarj(self):\n        self.enerji = 100\n        print(f\"{self.isim} şarj oldu!\")\n\n# Test\nalpha = Robot(\"Alpha\")\nalpha.konus(\"Merhaba Dünya!\")\nalpha.konus(\"Python harika!\")\nprint(f\"Kalan enerji: {alpha.enerji}\")",
+        quizzes: [
+            { type: "choice", questionTR: "İyi programcı olmak için ne gerekir?", questionEN: "What does it take to be a good programmer?", choicesTR: ["Pratik ve sabır", "Doğuştan yetenek", "Pahalı bilgisayar", "Çok uyumak"], choicesEN: ["Practice and patience", "Natural talent", "Expensive computer", "Lots of sleep"], correct: 0, hintTR: "Pratik mükemmelleştirir!", hintEN: "Practice makes perfect!", explanationTR: "Programlama pratikle gelişir.", explanationEN: "Programming improves with practice." },
+            { type: "choice", questionTR: "Hata aldığında ne yapmalı?", questionEN: "What to do when you get an error?", choicesTR: ["Oku, anla, düzelt", "Vazgeç", "Bilgisayarı kapat", "Ağla"], choicesEN: ["Read, understand, fix", "Give up", "Turn off computer", "Cry"], correct: 0, hintTR: "Hatalar öğretir!", hintEN: "Errors teach!", explanationTR: "Hatalar öğrenme fırsatıdır.", explanationEN: "Errors are learning opportunities." }
+        ],
+        reward: { xp: 250, badgeId: "python_hero", badgeNameTR: "Python Kahramanı", badgeNameEN: "Python Hero", badgeIcon: "🚀", moodDelta: 20 }
+    },
+    
+    // ============================================================
+    // YENİ EKLENEN 4 PYTHON KONUSU (12-15)
+    // ============================================================
+    {
+        id: 12, titleTR: "Liste Üreteçleri (List Comprehensions)", titleEN: "List Comprehensions",
+        iconClass: "fa-magic", color: "#00eeff",
+        storyMissionTR: "✨ Görev 13: Kod sihri! Liste üreteçleriyle tek satırda harika listeler oluştur!",
+        storyMissionEN: "✨ Mission 13: Code magic! Create amazing lists in one line with list comprehensions!",
+        learnTR: "<p>Liste üreteçleri, tek satırda hızlı liste oluşturmanın sihirli yoludur! ✨</p><p><code>[i for i in range(5)]</code> → [0, 1, 2, 3, 4]</p><p>Koşullu üreteç: <code>[i for i in range(10) if i % 2 == 0]</code> → Sadece çift sayılar!</p>",
+        learnEN: "<p>List comprehensions are the magical way to create lists quickly in one line! ✨</p><p><code>[i for i in range(5)]</code> → [0, 1, 2, 3, 4]</p><p>Conditional comprehension: <code>[i for i in range(10) if i % 2 == 0]</code> → Only even numbers!</p>",
+        examplesTR: [
+            { title: "Temel Üreteç", code: "sayilar = [i for i in range(5)]\nprint(sayilar)", explanation: "0'dan 4'e liste oluşturur." },
+            { title: "Kareler Listesi", code: "kareler = [x*x for x in range(1, 6)]\nprint(kareler)", explanation: "1'den 5'e karelerini hesaplar." },
+            { title: "Koşullu Üreteç", code: "ciftler = [i for i in range(10) if i % 2 == 0]\nprint(ciftler)", explanation: "Sadece çift sayıları alır." }
+        ],
+        examplesEN: [
+            { title: "Basic Comprehension", code: "numbers = [i for i in range(5)]\nprint(numbers)", explanation: "Creates list from 0 to 4." },
+            { title: "Squares List", code: "squares = [x*x for x in range(1, 6)]\nprint(squares)", explanation: "Calculates squares from 1 to 5." },
+            { title: "Conditional Comprehension", code: "evens = [i for i in range(10) if i % 2 == 0]\nprint(evens)", explanation: "Takes only even numbers." }
+        ],
+        miniTryType: "output-prediction",
+        miniTryTR: { question: "[i*2 for i in range(3)] ne döner?", options: ["[0, 2, 4]", "[2, 4, 6]", "[0, 1, 2]", "Hata"], answer: 0 },
+        miniTryEN: { question: "What does [i*2 for i in range(3)] return?", options: ["[0, 2, 4]", "[2, 4, 6]", "[0, 1, 2]", "Error"], answer: 0 },
+        challengesTR: [
+            "1'den 10'a kadar sayıların küplerini liste üreteciyle oluştur.",
+            "Listedeki tüm sayılardan sadece pozitif olanları filtrele."
+        ],
+        challengesEN: [
+            "Create cubes of numbers 1 to 10 using list comprehension.",
+            "Filter only positive numbers from a list using comprehension."
+        ],
+        starterCode: "# Liste üreteci sihri!\n# 0'dan 9'a kadar sayıların 2 katını al\nciftler = [i*2 for i in range(10)]\nprint(f\"Çiftler: {ciftler}\")\n\n# Sadece 5'ten büyük olanları al\nbuyukler = [sayi for sayi in ciftler if sayi > 5]\nprint(f\"5'ten büyükler: {buyukler}\")",
+        quizzes: [
+            { type: "choice", questionTR: "Liste üreteci nedir?", questionEN: "What is list comprehension?", choicesTR: ["Tek satırda liste oluşturma", "Liste silme", "Liste sıralama", "Liste yazdırma"], choicesEN: ["One-line list creation", "List deletion", "List sorting", "List printing"], correct: 0, hintTR: "Tek satır sihri!", hintEN: "One-line magic!", explanationTR: "Tek satırda hızlı liste oluşturma yöntemi.", explanationEN: "One-line method for quick list creation." },
+            { type: "choice", questionTR: "[x for x in range(3)] ne üretir?", questionEN: "What does [x for x in range(3)] produce?", choicesTR: ["[0, 1, 2]", "[1, 2, 3]", "[3]", "[0, 1]"], choicesEN: ["[0, 1, 2]", "[1, 2, 3]", "[3]", "[0, 1]"], correct: 0, hintTR: "range(3) = 0,1,2!", hintEN: "range(3) = 0,1,2!", explanationTR: "0'dan 2'ye liste oluşturur.", explanationEN: "Creates list from 0 to 2." }
+        ],
+        reward: { xp: 160, badgeId: "list_magician", badgeNameTR: "Liste Büyücüsü", badgeNameEN: "List Magician", badgeIcon: "✨", moodDelta: 10 }
+    },
+    {
+        id: 13, titleTR: "Lambda Fonksiyonları", titleEN: "Lambda Functions",
+        iconClass: "fa-bolt", color: "#ff00ff",
+        storyMissionTR: "⚡ Görev 14: Anonim güç! Lambda fonksiyonlarıyla tek satırda mini fonksiyonlar yaz!",
+        storyMissionEN: "⚡ Mission 14: Anonymous power! Write mini functions in one line with lambda functions!",
+        learnTR: "<p>Lambda, tek satırlık küçük fonksiyonlardır! ⚡ İsimsizdirler.</p><p><code>lambda x: x * 2</code> → x'i 2 ile çarpar</p><p><code>lambda a, b: a + b</code> → İki sayıyı toplar</p><p><strong>map()</strong>: Her elemana fonksiyon uygular<br><strong>filter()</strong>: Koşula uyanları seçer<br><strong>sorted()</strong>: Sıralama kriteri belirler</p>",
+        learnEN: "<p>Lambda are one-line mini functions! ⚡ They're anonymous.</p><p><code>lambda x: x * 2</code> → multiplies x by 2</p><p><code>lambda a, b: a + b</code> → adds two numbers</p><p><strong>map()</strong>: Applies function to each element<br><strong>filter()</strong>: Selects elements meeting condition<br><strong>sorted()</strong>: Defines sorting criteria</p>",
+        examplesTR: [
+            { title: "Temel Lambda", code: "iki_kati = lambda x: x * 2\nprint(iki_kati(5))", explanation: "x'i 2 ile çarpan lambda." },
+            { title: "Çoklu Parametre", code: "topla = lambda a, b: a + b\nprint(topla(3, 4))", explanation: "İki sayı toplayan lambda." },
+            { title: "map() ile Kullanım", code: "sayilar = [1, 2, 3, 4]\nikiler = list(map(lambda x: x * 2, sayilar))\nprint(ikiler)", explanation: "map() her elemana lambda uygular." }
+        ],
+        examplesEN: [
+            { title: "Basic Lambda", code: "double = lambda x: x * 2\nprint(double(5))", explanation: "Lambda that multiplies x by 2." },
+            { title: "Multiple Parameters", code: "add = lambda a, b: a + b\nprint(add(3, 4))", explanation: "Lambda that adds two numbers." },
+            { title: "Using with map()", code: "numbers = [1, 2, 3, 4]\ndoubles = list(map(lambda x: x * 2, numbers))\nprint(doubles)", explanation: "map() applies lambda to each element." }
+        ],
+        miniTryType: "function-builder",
+        miniTryTR: { question: "Karesini alan lambda?", code: "kare_al = lambda x: ___", options: ["x * x", "x + x", "x / x", "x - x"], answer: 0 },
+        miniTryEN: { question: "Lambda for square?", code: "square = lambda x: ___", options: ["x * x", "x + x", "x / x", "x - x"], answer: 0 },
+        challengesTR: [
+            "Listedeki tüm sayıların karesini alan map() + lambda kullan.",
+            "Sadece 10'dan büyük sayıları seçen filter() + lambda kullan."
+        ],
+        challengesEN: [
+            "Use map() + lambda to square all numbers in a list.",
+            "Use filter() + lambda to select only numbers greater than 10."
+        ],
+        starterCode: "# Lambda gücü!\nkare_al = lambda x: x * x\nprint(f\"5'in karesi: {kare_al(5)}\")\n\n# map() ile kullanım\nsayilar = [1, 2, 3, 4]\nkareler = list(map(kare_al, sayilar))\nprint(f\"Kareler: {kareler}\")\n\n# filter() ile kullanım\nbuyukler = list(filter(lambda x: x > 10, [5, 10, 15, 20]))\nprint(f\"10'dan büyükler: {buyukler}\")",
+        quizzes: [
+            { type: "choice", questionTR: "Lambda fonksiyonu nedir?", questionEN: "What is a lambda function?", choicesTR: ["İsimsiz mini fonksiyon", "Büyük fonksiyon", "Değişken", "Döngü"], choicesEN: ["Anonymous mini function", "Large function", "Variable", "Loop"], correct: 0, hintTR: "İsimsiz fonksiyon!", hintEN: "Anonymous function!", explanationTR: "Lambda tek satırlık isimsiz fonksiyondur.", explanationEN: "Lambda is a one-line anonymous function." },
+            { type: "choice", questionTR: "lambda x: x+1 ne yapar?", questionEN: "What does lambda x: x+1 do?", choicesTR: ["x'e 1 ekler", "x'i 1 ile çarpar", "x'i siler", "x'i yazdırır"], choicesEN: ["Adds 1 to x", "Multiplies x by 1", "Deletes x", "Prints x"], correct: 0, hintTR: "+1 ekleme!", hintEN: "+1 addition!", explanationTR: "Girdiye 1 ekleyen lambda.", explanationEN: "Lambda that adds 1 to input." }
+        ],
+        reward: { xp: 170, badgeId: "lambda_master", badgeNameTR: "Lambda Ustası", badgeNameEN: "Lambda Master", badgeIcon: "⚡", moodDelta: 12 }
+    },
+    {
+        id: 14, titleTR: "Dekoratörler (Decorators)", titleEN: "Decorators",
+        iconClass: "fa-gem", color: "#8B5CF6",
+        storyMissionTR: "💎 Görev 15: Fonksiyon süsleme! Dekoratörlerle fonksiyonlara ekstra özellikler ekle!",
+        storyMissionEN: "💎 Mission 15: Function decoration! Add extra features to functions with decorators!",
+        learnTR: "<p>Dekoratörler, fonksiyonları süsleyen özel fonksiyonlardır! 💎</p><p>Bir fonksiyonun önüne/arkasına kod eklemenin zarif yoludur.</p><p><code>@decorator</code> → Fonksiyonu dekore eder</p><p>Zamanlama, loglama, yetkilendirme gibi işler için idealdir!</p>",
+        learnEN: "<p>Decorators are special functions that decorate other functions! 💎</p><p>Elegant way to add code before/after a function.</p><p><code>@decorator</code> → decorates the function</p><p>Ideal for timing, logging, authorization etc!</p>",
+        examplesTR: [
+            { title: "Basit Dekoratör", code: "def selam_dekoru(func):\n    def wrapper():\n        print(\"Merhaba!\")\n        func()\n        print(\"Güle güle!\")\n    return wrapper\n\n@selam_dekoru\ndef selamla():\n    print(\"Ben bir robotum!\")\n\nselamla()", explanation: "Fonksiyonun önüne ve arkasına mesaj ekler." },
+            { title: "Zaman Ölçme Dekoratörü", code: "import time\n\ndef zaman_olc(func):\n    def wrapper(*args, **kwargs):\n        baslangic = time.time()\n        sonuc = func(*args, **kwargs)\n        bitis = time.time()\n        print(f\"{func.__name__} {bitis-baslangic:.2f} saniye sürdü\")\n        return sonuc\n    return wrapper\n\n@zaman_olc\ndef yavas_islem():\n    time.sleep(1)\n    return \"Tamam!\"\n\nprint(yavas_islem())", explanation: "Fonksiyonun çalışma süresini ölçer." },
+            { title: "Parametreli Dekoratör", code: "def tekrar_et(n):\n    def dekorator(func):\n        def wrapper(*args, **kwargs):\n            for i in range(n):\n                print(f\"{i+1}. deneme:\")\n                func(*args, **kwargs)\n        return wrapper\n    return dekorator\n\n@tekrar_et(3)\ndef bip():\n    print(\"Bip!\")\n\nbip()", explanation: "Parametre alan dekoratör - fonksiyonu n kere tekrarlar." }
+        ],
+        examplesEN: [
+            { title: "Simple Decorator", code: "def greet_decorator(func):\n    def wrapper():\n        print(\"Hello!\")\n        func()\n        print(\"Goodbye!\")\n    return wrapper\n\n@greet_decorator\ndef greet():\n    print(\"I'm a robot!\")\n\ngreet()", explanation: "Adds message before and after function." },
+            { title: "Timing Decorator", code: "import time\n\ndef timing_decorator(func):\n    def wrapper(*args, **kwargs):\n        start = time.time()\n        result = func(*args, **kwargs)\n        end = time.time()\n        print(f\"{func.__name__} took {end-start:.2f} seconds\")\n        return result\n    return wrapper\n\n@timing_decorator\ndef slow_operation():\n    time.sleep(1)\n    return \"Done!\"\n\nprint(slow_operation())", explanation: "Measures function execution time." },
+            { title: "Parameterized Decorator", code: "def repeat(n):\n    def decorator(func):\n        def wrapper(*args, **kwargs):\n            for i in range(n):\n                print(f\"Attempt {i+1}:\")\n                func(*args, **kwargs)\n        return wrapper\n    return decorator\n\n@repeat(3)\ndef beep():\n    print(\"Beep!\")\n\nbeep()", explanation: "Decorator with parameter - repeats function n times." }
+        ],
+        miniTryType: "function-builder",
+        miniTryTR: { question: "Dekoratör ne yapar?", options: ["Fonksiyonu süsler", "Fonksiyonu siler", "Fonksiyonu yavaşlatır", "Fonksiyonu hızlandırır"], answer: 0 },
+        miniTryEN: { question: "What does decorator do?", options: ["Decorates function", "Deletes function", "Slows function", "Speeds function"], answer: 0 },
+        challengesTR: [
+            "Fonksiyon çalışma süresini ölçen dekoratör yaz.",
+            "Fonksiyonu 3 kere tekrarlayan dekoratör yaz."
+        ],
+        challengesEN: [
+            "Write decorator that measures function execution time.",
+            "Write decorator that repeats function 3 times."
+        ],
+        starterCode: "# Dekoratör örneği\ndef mesaj_ekle(func):\n    def wrapper():\n        print(\"Fonksiyon başlıyor...\")\n        func()\n        print(\"Fonksiyon bitti!\")\n    return wrapper\n\n@mesaj_ekle\ndef robot_konus():\n    print(\"🤖: Merhaba Dünya!\")\n\nrobot_konus()",
+        quizzes: [
+            { type: "choice", questionTR: "Dekoratör ne işe yarar?", questionEN: "What is decorator for?", choicesTR: ["Fonksiyona özellik ekler", "Fonksiyonu siler", "Fonksiyonu gizler", "Fonksiyonu kopyalar"], choicesEN: ["Adds features to function", "Deletes function", "Hides function", "Copies function"], correct: 0, hintTR: "Süsleme!", hintEN: "Decoration!", explanationTR: "Fonksiyona ekstra özellikler ekler.", explanationEN: "Adds extra features to function." },
+            { type: "choice", questionTR: "@dekor ne demek?", questionEN: "What does @decor mean?", choicesTR: ["Dekoratör uygula", "Fonksiyonu sil", "Değişken tanımla", "Hata ver"], choicesEN: ["Apply decorator", "Delete function", "Define variable", "Give error"], correct: 0, hintTR: "@ işareti dekoratör!", hintEN: "@ symbol means decorator!", explanationTR: "@ işareti dekoratör uygulanacağını belirtir.", explanationEN: "@ symbol indicates decorator to be applied." }
+        ],
+        reward: { xp: 190, badgeId: "decorator_expert", badgeNameTR: "Dekoratör Uzmanı", badgeNameEN: "Decorator Expert", badgeIcon: "💎", moodDelta: 15 }
+    },
+    {
+        id: 15, titleTR: "İteratörler ve Jeneratörler", titleEN: "Iterators & Generators",
+        iconClass: "fa-infinity", color: "#FF6B8B",
+        storyMissionTR: "∞ Görev 16: Sonsuz güç! İteratörler ve jeneratörlerle hafıza dostu kod yaz!",
+        storyMissionEN: "∞ Mission 16: Infinite power! Write memory-friendly code with iterators and generators!",
+        learnTR: "<p><strong>İteratör</strong>: Elemanlar üzerinde gezinmeyi sağlar<br><strong>Jeneratör</strong>: Değerleri tek tek üretir, hafıza dostudur! ∞</p><p><code>yield</code>: Jeneratörde değer döndürür, durumu hatırlar<br><code>next()</code>: Sonraki değeri alır</p>",
+        learnEN: "<p><strong>Iterator</strong>: Allows navigating over elements<br><strong>Generator</strong>: Produces values one by one, memory-friendly! ∞</p><p><code>yield</code>: Returns value in generator, remembers state<br><code>next()</code>: Gets next value</p>",
+        examplesTR: [
+            { title: "Temel İteratör", code: "liste = [1, 2, 3]\niteratör = iter(liste)\nprint(next(iteratör))\nprint(next(iteratör))", explanation: "iter() ile iteratör oluşturulur." },
+            { title: "Basit Jeneratör", code: "def sayi_uret():\n    yield 1\n    yield 2\n    yield 3\n\nj = sayi_uret()\nprint(next(j))\nprint(next(j))", explanation: "yield değerleri tek tek döndürür." },
+            { title: "Döngü ile Jeneratör", code: "def say(n):\n    for i in range(n):\n        yield f\"Sayı {i}\"\n\nfor s in say(3):\n    print(s)", explanation: "for döngüsü jeneratörle çalışabilir." }
+        ],
+        examplesEN: [
+            { title: "Basic Iterator", code: "mylist = [1, 2, 3]\niterator = iter(mylist)\nprint(next(iterator))\nprint(next(iterator))", explanation: "iter() creates iterator." },
+            { title: "Simple Generator", code: "def generate_numbers():\n    yield 1\n    yield 2\n    yield 3\n\ngen = generate_numbers()\nprint(next(gen))\nprint(next(gen))", explanation: "yield returns values one by one." },
+            { title: "Generator with Loop", code: "def count(n):\n    for i in range(n):\n        yield f\"Number {i}\"\n\nfor c in count(3):\n    print(c)", explanation: "for loop can work with generator." }
+        ],
+        miniTryType: "output-prediction",
+        miniTryTR: { question: "def g(): yield 1; yield 2\nnext(g()) ne döner?", options: ["1", "2", "[1, 2]", "Hata"], answer: 0 },
+        miniTryEN: { question: "def g(): yield 1; yield 2\nnext(g()) returns?", options: ["1", "2", "[1, 2]", "Error"], answer: 0 },
+        challengesTR: [
+            "1'den 10'a kadar sayı üreten jeneratör yaz.",
+            "Fibonacci sayılarını üreten jeneratör yaz."
+        ],
+        challengesEN: [
+            "Write generator that produces numbers 1 to 10.",
+            "Write generator that produces Fibonacci numbers."
+        ],
+        starterCode: "# Jeneratör örneği\ndef sayi_jeneratoru(n):\n    for i in range(n):\n        yield i * 2  # Her sayıyı 2 ile çarp\n\n# Jeneratörü kullan\nj = sayi_jeneratoru(5)\nprint(next(j))  # 0\nprint(next(j))  # 2\nprint(next(j))  # 4\n\n# Döngü ile kullan\nfor sayi in sayi_jeneratoru(3):\n    print(f\"Sayı: {sayi}\")",
+        quizzes: [
+            { type: "choice", questionTR: "Jeneratör nedir?", questionEN: "What is a generator?", choicesTR: ["Değerleri tek tek üreten fonksiyon", "Tüm değerleri bir anda üreten fonksiyon", "Değişken", "Liste"], choicesEN: ["Function that produces values one by one", "Function that produces all values at once", "Variable", "List"], correct: 0, hintTR: "yield kullanır!", hintEN: "Uses yield!", explanationTR: "Jeneratör yield ile değerleri tek tek üretir.", explanationEN: "Generator produces values one by one using yield." },
+            { type: "choice", questionTR: "yield ne yapar?", questionEN: "What does yield do?", choicesTR: ["Değer döndürür ve durumu hatırlar", "Fonksiyonu bitirir", "Hata verir", "Liste oluşturur"], choicesEN: ["Returns value and remembers state", "Ends function", "Gives error", "Creates list"], correct: 0, hintTR: "Durdur ve devam et!", hintEN: "Pause and continue!", explanationTR: "yield değer döndürür, sonraki next() çağrısında kaldığı yerden devam eder.", explanationEN: "yield returns value, continues from where it left on next next() call." }
+        ],
+        reward: { xp: 180, badgeId: "generator_master", badgeNameTR: "Jeneratör Ustası", badgeNameEN: "Generator Master", badgeIcon: "∞", moodDelta: 14 }
+    },
+    
+    // ============================================================
+    // YAPAY ZEKA TEMELLİ PYTHON KONULARI (16-17)
+    // ============================================================
+    {
+        id: 16, titleTR: "Yapay Zeka ile Tanışma", titleEN: "Introduction to AI",
+        iconClass: "fa-brain", color: "#8B5CF6",
+        storyMissionTR: "🧠 Görev 17: Robot zekası! Yapay zeka temellerini öğren, robotları daha akıllı yap!",
+        storyMissionEN: "🧠 Mission 17: Robot intelligence! Learn AI basics, make robots smarter!",
+        learnTR: "<p>Yapay Zeka = Bilgisayarların insan gibi düşünmesini sağlayan teknoloji 🧠</p><p><strong>Makine Öğrenmesi</strong>: Veriden öğrenen sistemler<br><strong>Derin Öğrenme</strong>: Beyin gibi çalışan ağlar<br><strong>Doğal Dil İşleme</strong>: Bilgisayarların dili anlaması</p><p>Python'da: scikit-learn, TensorFlow, PyTorch kütüphaneleri</p>",
+        learnEN: "<p>Artificial Intelligence = Technology that makes computers think like humans 🧠</p><p><strong>Machine Learning</strong>: Systems that learn from data<br><strong>Deep Learning</strong>: Networks working like brain<br><strong>Natural Language Processing</strong>: Computers understanding language</p><p>In Python: scikit-learn, TensorFlow, PyTorch libraries</p>",
+        examplesTR: [
+            { title: "Basit AI Sınıflandırma", code: "# Basit bir karar ağacı simülasyonu\ndef karar_agaci(yas, enerji):\n    if yas < 10 and enerji > 50:\n        return \"Genç ve enerjik robot\"\n    elif yas >= 10 and enerji > 30:\n        return \"Deneyimli robot\"\n    else:\n        return \"Dinlenmeli\"\n\nprint(karar_agaci(8, 80))\nprint(karar_agaci(12, 40))", explanation: "Basit kurallarla karar verme - AI'nin temeli!" },
+            { title: "Veri Kümesi Simülasyonu", code: "# Robot veri kümesi\nrobot_verisi = [\n    [5, 80, \"aktif\"],   # [yaş, enerji, durum]\n    [3, 90, \"aktif\"],\n    [8, 30, \"pasif\"],\n    [10, 40, \"aktif\"],\n]\n\nfor veri in robot_verisi:\n    yas, enerji, durum = veri\n    print(f\"Yaş: {yas}, Enerji: {enerji}, Durum: {durum}\")", explanation: "AI modelleri veriden öğrenir." },
+            { title: "Tahmin Fonksiyonu", code: "def tahmin_et(veri, model=\"basit\"):\n    if model == \"basit\":\n        # Basit kural tabanlı tahmin\n        if veri[0] < 7 and veri[1] > 60:\n            return \"Yüksek performans\"\n        else:\n            return \"Normal performans\"\n    return \"Bilinmiyor\"\n\nprint(tahmin_et([5, 80]))\nprint(tahmin_et([9, 50]))", explanation: "AI modelleri yeni veriler için tahmin yapar." }
+        ],
+        examplesEN: [
+            { title: "Simple AI Classification", code: "# Simple decision tree simulation\ndef decision_tree(age, energy):\n    if age < 10 and energy > 50:\n        return \"Young and energetic robot\"\n    elif age >= 10 and energy > 30:\n        return \"Experienced robot\"\n    else:\n        return \"Needs rest\"\n\nprint(decision_tree(8, 80))\nprint(decision_tree(12, 40))", explanation: "Decision making with simple rules - AI foundation!" },
+            { title: "Dataset Simulation", code: "# Robot dataset\nrobot_data = [\n    [5, 80, \"active\"],   # [age, energy, status]\n    [3, 90, \"active\"],\n    [8, 30, \"inactive\"],\n    [10, 40, \"active\"],\n]\n\nfor data in robot_data:\n    age, energy, status = data\n    print(f\"Age: {age}, Energy: {energy}, Status: {status}\")", explanation: "AI models learn from data." },
+            { title: "Prediction Function", code: "def predict(data, model=\"simple\"):\n    if model == \"simple\":\n        # Simple rule-based prediction\n        if data[0] < 7 and data[1] > 60:\n            return \"High performance\"\n        else:\n            return \"Normal performance\"\n    return \"Unknown\"\n\nprint(predict([5, 80]))\nprint(predict([9, 50]))", explanation: "AI models make predictions for new data." }
+        ],
+        miniTryType: "output-prediction",
+        miniTryTR: { question: "AI ne demek?", options: ["Yapay Zeka", "Doğal Zeka", "Robot Zekası", "İnsan Zekası"], answer: 0 },
+        miniTryEN: { question: "What does AI mean?", options: ["Artificial Intelligence", "Natural Intelligence", "Robot Intelligence", "Human Intelligence"], answer: 0 },
+        challengesTR: [
+            "Robot performansını tahmin eden basit bir fonksiyon yaz.",
+            "Robot verilerinden özellik çıkaran fonksiyon yaz."
+        ],
+        challengesEN: [
+            "Write simple function predicting robot performance.",
+            "Write function extracting features from robot data."
+        ],
+        starterCode: "# Yapay Zeka'ya Giriş\n# Basit bir robot sınıflandırıcı\n\ndef robot_siniflandir(yas, enerji, hiz):\n    \"\"\"Robotları sınıflandıran basit bir AI\"\"\"\n    puan = (yas * 0.3) + (enerji * 0.5) + (hiz * 0.2)\n    \n    if puan > 80:\n        return \"Süper Robot\"\n    elif puan > 60:\n        return \"İyi Robot\"\n    elif puan > 40:\n        return \"Orta Robot\"\n    else:\n        return \"Yeni Başlayan Robot\"\n\n# Test\nprint(robot_siniflandir(5, 90, 80))  # Süper Robot\nprint(robot_siniflandir(10, 30, 50)) # Yeni Başlayan",
+        quizzes: [
+            { type: "choice", questionTR: "AI ne demek?", questionEN: "What does AI mean?", choicesTR: ["Yapay Zeka", "Akıllı Asistan", "Otomatik İşlem", "Algoritmik İlerleme"], choicesEN: ["Artificial Intelligence", "Smart Assistant", "Automatic Process", "Algorithmic Progress"], correct: 0, hintTR: "Artificial Intelligence!", hintEN: "Artificial Intelligence!", explanationTR: "AI = Artificial Intelligence = Yapay Zeka", explanationEN: "AI = Artificial Intelligence" },
+            { type: "choice", questionTR: "Makine Öğrenmesi nedir?", questionEN: "What is Machine Learning?", choicesTR: ["Veriden öğrenen sistemler", "Manuel programlama", "Robot montajı", "Kod yazma"], choicesEN: ["Systems that learn from data", "Manual programming", "Robot assembly", "Coding"], correct: 0, hintTR: "Veriyle öğren!", hintEN: "Learn with data!", explanationTR: "Makine öğrenmesi veriden öğrenen AI sistemleridir.", explanationEN: "Machine Learning is AI systems that learn from data." }
+        ],
+        reward: { xp: 200, badgeId: "ai_beginner", badgeNameTR: "AI Başlangıç Seviyesi", badgeNameEN: "AI Beginner", badgeIcon: "🧠", moodDelta: 15, isAI: true }
+    },
+    {
+        id: 17, titleTR: "Python ile Basit AI Uygulaması", titleEN: "Simple AI Application with Python",
+        iconClass: "fa-robot", color: "#00eeff",
+        storyMissionTR: "🤖 Görev 18: AI Mühendisi Ol! Python ile gerçek bir AI uygulaması geliştir!",
+        storyMissionEN: "🤖 Mission 18: Become an AI Engineer! Develop a real AI application with Python!",
+        learnTR: "<p>Artık öğrendiklerini birleştirme zamanı! 🤖</p><p>Bu derste:<br>• Veri toplama ve hazırlama<br>• Basit bir AI modeli oluşturma<br>• Modeli eğitme ve test etme<br>• Gerçek dünya uygulaması yapma</p><p>Hedef: Robot davranışlarını tahmin eden bir AI sistemi!</p>",
+        learnEN: "<p>Time to combine what you've learned! 🤖</p><p>In this lesson:<br>• Data collection and preparation<br>• Creating a simple AI model<br>• Training and testing the model<br>• Making a real-world application</p><p>Goal: An AI system that predicts robot behavior!</p>",
+        examplesTR: [
+            { title: "Robot Veri Sınıfı", code: "class RobotVeri:\n    def __init__(self):\n        self.veriler = []\n    \n    def veri_ekle(self, yas, enerji, hiz, davranis):\n        self.veriler.append([yas, enerji, hiz, davranis])\n    \n    def verileri_al(self):\n        return self.veriler\n\n# Kullanım\nveritabani = RobotVeri()\nveritabani.veri_ekle(5, 80, 70, \"mutlu\")\nveritabani.veri_ekle(8, 30, 40, \"uzgun\")\nprint(veritabani.verileri_al())", explanation: "AI için veri toplama ve saklama." },
+            { title: "Basit AI Modeli", code: "class BasitAIModeli:\n    def __init__(self):\n        self.kurallar = []\n    \n    def ogren(self, veri):\n        # Basit kurallar öğren\n        for yas, enerji, hiz, davranis in veri:\n            if enerji > 60:\n                self.kurallar.append((\"enerji_yuksek\", davranis))\n            if yas < 7:\n                self.kurallar.append((\"genc\", davranis))\n    \n    def tahmin_et(self, yas, enerji, hiz):\n        # Kurallara göre tahmin\n        if enerji > 60:\n            return \"mutlu\"\n        elif yas < 7:\n            return \"enerjik\"\n        else:\n            return \"normal\"\n\nmodel = BasitAIModeli()\nprint(model.tahmin_et(5, 80, 70))", explanation: "Basit kural tabanlı AI modeli." },
+            { title: "AI Sınıflandırıcı", code: "class RobotAISiniflandirici:\n    def __init__(self):\n        self.egitim_verisi = []\n    \n    def egit(self, veriler):\n        self.egitim_verisi = veriler\n        print(f\"Model {len(veriler)} veri ile eğitildi\")\n    \n    def siniflandir(self, yas, enerji, hiz):\n        # Basit karar ağacı mantığı\n        puan = (yas * 0.2) + (enerji * 0.5) + (hiz * 0.3)\n        \n        if puan > 70:\n            return \"MÜKEMMEL\"\n        elif puan > 50:\n            return \"İYİ\"\n        elif puan > 30:\n            return \"ORTA\"\n        else:\n            return \"GELİŞTİRİLMELİ\"\n\nai = RobotAISiniflandirici()\nprint(ai.siniflandir(6, 85, 75))", explanation: "Robotları sınıflandıran AI modeli." }
+        ],
+        examplesEN: [
+            { title: "Robot Data Class", code: "class RobotData:\n    def __init__(self):\n        self.data = []\n    \n    def add_data(self, age, energy, speed, behavior):\n        self.data.append([age, energy, speed, behavior])\n    \n    def get_data(self):\n        return self.data\n\n# Usage\ndatabase = RobotData()\ndatabase.add_data(5, 80, 70, \"happy\")\ndatabase.add_data(8, 30, 40, \"sad\")\nprint(database.get_data())", explanation: "Data collection and storage for AI." },
+            { title: "Simple AI Model", code: "class SimpleAIModel:\n    def __init__(self):\n        self.rules = []\n    \n    def learn(self, data):\n        # Learn simple rules\n        for age, energy, speed, behavior in data:\n            if energy > 60:\n                self.rules.append((\"high_energy\", behavior))\n            if age < 7:\n                self.rules.append((\"young\", behavior))\n    \n    def predict(self, age, energy, speed):\n        # Predict based on rules\n        if energy > 60:\n            return \"happy\"\n        elif age < 7:\n            return \"energetic\"\n        else:\n            return \"normal\"\n\nmodel = SimpleAIModel()\nprint(model.predict(5, 80, 70))", explanation: "Simple rule-based AI model." },
+            { title: "AI Classifier", code: "class RobotAIClassifier:\n    def __init__(self):\n        self.training_data = []\n    \n    def train(self, data):\n        self.training_data = data\n        print(f\"Model trained with {len(data)} data points\")\n    \n    def classify(self, age, energy, speed):\n        # Simple decision tree logic\n        score = (age * 0.2) + (energy * 0.5) + (speed * 0.3)\n        \n        if score > 70:\n            return \"EXCELLENT\"\n        elif score > 50:\n            return \"GOOD\"\n        elif score > 30:\n            return \"AVERAGE\"\n        else:\n            return \"NEEDS IMPROVEMENT\"\n\nai = RobotAIClassifier()\nprint(ai.classify(6, 85, 75))", explanation: "AI model classifying robots." }
+        ],
+        miniTryType: "project-build",
+        miniTryTR: { question: "AI uygulaması geliştirmek için en önemli adım nedir?", options: ["Veri toplama", "Renk seçme", "Hızlanma", "Ses ekleme"], answer: 0 },
+        miniTryEN: { question: "Most important step for AI application development?", options: ["Data collection", "Color choosing", "Speeding up", "Adding sound"], answer: 0 },
+        challengesTR: [
+            "Robot verilerini toplayan bir sınıf oluştur.",
+            "Basit bir AI modeli yaz ve robot davranışını tahmin et."
+        ],
+        challengesEN: [
+            "Create a class collecting robot data.",
+            "Write simple AI model predicting robot behavior."
+        ],
+        starterCode: "# Python ile Basit AI Uygulaması\n\nclass RobotAI:\n    \"\"\"Robot davranışlarını tahmin eden basit AI\"\"\"\n    \n    def __init__(self):\n        self.veriler = []\n        self.model = None\n    \n    def veri_ekle(self, yas, enerji, davranis):\n        \"\"\"Yeni veri ekle\"\"\"\n        self.veriler.append({\"yas\": yas, \"enerji\": enerji, \"davranis\": davranis})\n        print(f\"Veri eklendi: Yaş={yas}, Enerji={enerji}, Davranış={davranis}\")\n    \n    def modeli_egit(self):\n        \"\"\"Verilerle modeli eğit\"\"\"\n        if len(self.veriler) == 0:\n            print(\"Eğitim için veri yok!\")\n            return\n        \n        # Basit bir model oluştur\n        mutlu_say = 0\n        for veri in self.veriler:\n            if veri[\"davranis\"] == \"mutlu\":\n                mutlu_say += 1\n        \n        self.model = {\n            \"mutlu_olasilik\": mutlu_say / len(self.veriler),\n            \"toplam_veri\": len(self.veriler)\n        }\n        print(f\"Model eğitildi! {len(self.veriler)} veri kullanıldı.\")\n    \n    def tahmin_et(self, yas, enerji):\n        \"\"\"Yeni veri için tahmin yap\"\"\"\n        if self.model is None:\n            return \"Model henüz eğitilmedi!\"\n        \n        # Basit tahmin kuralları\n        if enerji > 70:\n            return \"mutlu\"\n        elif yas < 8:\n            return \"enerjik\"\n        else:\n            return \"normal\"\n\n# AI'mızı test edelim\nai = RobotAI()\nai.veri_ekle(5, 80, \"mutlu\")\nai.veri_ekle(8, 30, \"üzgün\")\nai.modeli_egit()\nprint(f\"Tahmin: {ai.tahmin_et(6, 85)}\")",
+        quizzes: [
+            { type: "choice", questionTR: "AI uygulaması ilk ne yapar?", questionEN: "What does AI application do first?", choicesTR: ["Veri toplar", "Renk seçer", "Ses ekler", "Hızlanır"], choicesEN: ["Collects data", "Chooses colors", "Adds sound", "Speeds up"], correct: 0, hintTR: "Veri olmadan AI olmaz!", hintEN: "No data, no AI!", explanationTR: "AI veriden öğrenir, bu yüzden ilk adım veri toplamaktır.", explanationEN: "AI learns from data, so first step is collecting data." },
+            { type: "choice", questionTR: "Model eğitimi ne demek?", questionEN: "What does model training mean?", choicesTR: ["AI'nin veriden öğrenmesi", "AI'nin hızlanması", "AI'nin renk değiştirmesi", "AI'nin konuşması"], choicesEN: ["AI learning from data", "AI speeding up", "AI changing colors", "AI talking"], correct: 0, hintTR: "Öğrenme süreci!", hintEN: "Learning process!", explanationTR: "Model eğitimi, AI'nin veriden öğrenme sürecidir.", explanationEN: "Model training is AI's learning process from data." }
+        ],
+        reward: { xp: 300, badgeId: "ai_engineer", badgeNameTR: "AI Mühendisi", badgeNameEN: "AI Engineer", badgeIcon: "🤖", moodDelta: 25, isAI: true }
+    }
+];
+
+// ============================================================
+// UI CONTENT
+// ============================================================
+const content = {
+    TR: {
+        intro: ["Logica gezegeninde Python konuşan robotlar mutlu yaşıyordu...", "Aniden büyük bir kod fırtınası koptu!", "Robotlar Dünya'ya düştüler...", "Şimdi üzgün ve kayıplar...", "Senin görevin: Python öğren, robotları kurtar!", "Hazır mısın? 🚀"],
+        introBtn: "ROBOTLARI KURTAR!",
+        title: "PYTHON ÖĞREN - ROBOTLARI KURTAR!",
+        story: "Uzak bir galakside, Python dilinde konuşan robotlar yaşıyordu. Büyük bir fırtına onları Dünya'ya savurdu. Python öğrenip onlarla iletişim kurmalısın!",
+        steps: ["Hikaye", "Öğren", "Örnekler", "Dene", "Kodla", "Quiz", "Ödül"],
+        quizCorrect: "Doğru! 🎉", quizIncorrect: "Yanlış! 😅", hint: "İpucu", explanation: "Açıklama",
+        next: "Sonraki", submit: "Gönder", run: "Çalıştır", reset: "Sıfırla",
+        rewardTitle: "TEBRİKLER!", rewardXP: "XP Kazandın", rewardBadge: "Rozet Kazandın",
+        continue: "Devam Et", finaleTitle: "ROBOTLAR EVE DÖNÜYOR!",
+        finaleMsg: "Tüm Python konularını öğrendin ve robotlarla iletişim kurdun! Şimdi onları evlerine gönderebiliriz!",
+        nameLabel: "Galaktik Mühendis Adın:", certBtn: "SERTİFİKA AL",
+        certTitle: "BAŞARI SERTİFİKASI", certText: "Bu belge, aşağıdaki kişinin Python ile Robot Kurtarma programını başarıyla tamamladığını onayar:",
+        certAchieve: "Python programlama temellerini öğrendi, robotlarla iletişim kurdu ve onları galaksilerine geri gönderdi!",
+        print: "Yazdır", close: "Kapat"
+    },
+    EN: {
+        intro: ["On Planet Logica, robots who speak Python lived happily...", "Suddenly, a great code storm hit!", "Robots fell to Earth...", "Now they're sad and lost...", "Your mission: Learn Python, save the robots!", "Ready? 🚀"],
+        introBtn: "SAVE THE ROBOTS!",
+        title: "LEARN PYTHON - SAVE THE ROBOTS!",
+        story: "In a distant galaxy, robots who speak Python lived peacefully. A great storm scattered them to Earth. Learn Python to communicate with them!",
+        steps: ["Story", "Learn", "Examples", "Try", "Code", "Quiz", "Reward"],
+        quizCorrect: "Correct! 🎉", quizIncorrect: "Wrong! 😅", hint: "Hint", explanation: "Explanation",
+        next: "Next", submit: "Submit", run: "Run", reset: "Reset",
+        rewardTitle: "CONGRATULATIONS!", rewardXP: "XP Earned", rewardBadge: "Badge Earned",
+        continue: "Continue", finaleTitle: "ROBOTS RETURNING HOME!",
+        finaleMsg: "You learned all Python topics and communicated with robots! Now we can send them home!",
+        nameLabel: "Your Galactic Engineer Name:", certBtn: "GET CERTIFICATE",
+        certTitle: "CERTIFICATE OF ACHIEVEMENT", certText: "This certifies that the following person has successfully completed the Python Robot Rescue program:",
+        certAchieve: "Learned Python programming fundamentals, communicated with robots, and sent them back to their galaxy!",
+        print: "Print", close: "Close"
+    }
+};
+
+// ============================================================
+// PYODIDE INITIALIZATION
+// ============================================================
+async function initPyodide() {
+    try {
+        document.getElementById('pyodideStatus').textContent = lang === 'TR' ? 'Python yükleniyor...' : 'Loading Python...';
+        pyodide = await loadPyodide();
+        pyodideReady = true;
+        document.getElementById('pyodideStatus').innerHTML = '<span style="color: #00ff00;">✓ Python hazır! / Python ready!</span>';
+        addTerminalOutput('>>> Python 3.11 hazır! / Python 3.11 ready!');
+    } catch (e) {
+        document.getElementById('pyodideStatus').innerHTML = '<span style="color: #ff5555;">Python yüklenemedi / Python failed to load</span>';
+        console.error('Pyodide error:', e);
+    }
+}
+
+async function runPython(code) {
+    if (!pyodideReady) return { output: 'Python henüz yüklenmedi / Python not loaded yet', error: true };
+    try {
+        pyodide.runPython(`import sys\nfrom io import StringIO\nsys.stdout = StringIO()\nsys.stderr = StringIO()`);
+        pyodide.runPython(code);
+        const stdout = pyodide.runPython('sys.stdout.getvalue()');
+        const stderr = pyodide.runPython('sys.stderr.getvalue()');
+        if (stderr) return { output: stderr, error: true };
+        return { output: stdout || '(Çıktı yok / No output)', error: false };
+    } catch (e) {
+        return { output: formatPythonError(e.message), error: true };
+    }
+}
+
+function formatPythonError(msg) {
+    const hints = {
+        'SyntaxError': { TR: 'Yazım hatası! Parantez, tırnak veya iki nokta eksik olabilir.', EN: 'Syntax error! Missing parenthesis, quote, or colon.' },
+        'NameError': { TR: 'Tanımsız değişken! Yazımı kontrol et.', EN: 'Undefined variable! Check spelling.' },
+        'TypeError': { TR: 'Tip hatası! Farklı tipleri birleştirmeye çalışıyor olabilirsin.', EN: 'Type error! You might be mixing different types.' },
+        'IndentationError': { TR: 'Girinti hatası! 4 boşluk kullan.', EN: 'Indentation error! Use 4 spaces.' },
+        'ZeroDivisionError': { TR: 'Sıfıra bölme hatası!', EN: 'Division by zero error!' }
+    };
+    for (let err in hints) { if (msg.includes(err)) return msg + '\n\n💡 ' + hints[err][lang]; }
+    return msg;
+}
+
+// ============================================================
+// AUDIO FUNCTIONS
+// ============================================================
+function playSound(freq, dur = 0.2, type = 'sine', vol = globalVolume) {
+    if (!audioCtx || vol === 0) return;
+    try {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type; osc.frequency.value = freq;
+        gain.gain.setValueAtTime(vol * 0.1, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.start(); osc.stop(audioCtx.currentTime + dur);
+    } catch(e) {}
+}
+
+function playRobotSound(happy = false) {
+    const freqs = happy ? [400, 500, 600] : [200, 250, 300];
+    for (let i = 0; i < 3; i++) setTimeout(() => playSound(freqs[Math.floor(Math.random() * 3)], 0.1, 'square'), i * 100);
+}
+
+// ============================================================
+// STARS & ROBOTS
+// ============================================================
+function createStars() {
+    const c = document.getElementById('stars');
+    for (let i = 0; i < 100; i++) {
+        const s = document.createElement('div'); s.className = 'star';
+        s.style.cssText = `width:${Math.random()*3}px;height:${s.style.width};left:${Math.random()*100}%;top:${Math.random()*100}%;opacity:${Math.random()*0.7+0.3};animation-delay:${Math.random()*3}s`;
+        c.appendChild(s);
+    }
+}
+
+function spawnRobots() {
+    const stage = document.getElementById('stage');
+    const oldRobots = stage.querySelectorAll('.robot-wrapper');
+    oldRobots.forEach(r => r.remove());
+    
+    const colors = ['#00f2fe', '#facc15', '#ff007a', '#06D6A0', '#7209B7'];
+    const names = ['Alpha', 'Beta', 'Gamma', 'Delta', 'Epsilon'];
+    const progress = gameState.completedTopics.length / topicsData.length;
+    const isHappy = progress >= 0.5;
+    
+    for (let i = 0; i < 5; i++) {
+        const w = document.createElement('div');
+        w.className = 'robot-wrapper ' + (isHappy ? 'happy-robot' : 'sad-robot');
+        w.style.cssText = `left:${15+i*17}%;top:${20+Math.random()*50}%;animation-delay:${i*0.5}s`;
+        
+        const bubble = document.createElement('div'); bubble.className = 'speech-bubble';
+        w.appendChild(bubble);
+        
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('width', '120'); svg.setAttribute('height', '120'); svg.setAttribute('viewBox', '0 0 200 200');
+        const mouthPath = isHappy ? 'M 80 95 Q 100 115 120 95' : 'M 80 105 Q 100 95 120 105';
+        svg.innerHTML = `<rect x="50" y="45" width="100" height="90" rx="25" fill="${colors[i]}" stroke="#fff" stroke-width="2" opacity="${isHappy?1:0.8}"/>
+            <rect x="60" y="60" width="80" height="35" rx="12" fill="#1e293b"/>
+            <circle cx="80" cy="75" r="8" fill="#fff"/><circle cx="120" cy="75" r="8" fill="#fff"/>
+            <path d="${mouthPath}" stroke="white" stroke-width="3" fill="none"/>
+            <text x="100" y="170" text-anchor="middle" fill="white" font-size="11">${names[i]}</text>`;
+        w.appendChild(svg);
+        stage.appendChild(w);
+        
+        // Random speech
+        setInterval(() => {
+            const phrases = lang === 'TR' 
+                ? ["print('Yardım!')", "if kayıp: üzgün()", "for i in range(3): bip()"]
+                : ["print('Help!')", "if lost: sad()", "for i in range(3): beep()"];
+            bubble.textContent = phrases[Math.floor(Math.random() * phrases.length)];
+            bubble.classList.add('active');
+            playRobotSound(isHappy);
+            setTimeout(() => bubble.classList.remove('active'), 3000);
+        }, 8000 + i * 2000);
+        
+        w.onclick = () => { playRobotSound(isHappy); };
+    }
+}
+
+// ============================================================
+// LANGUAGE & INTRO
+// ============================================================
+function selectLanguage(l) {
+    lang = l;
+    document.getElementById('languageSelector').style.display = 'none';
+    document.getElementById('navLangBtn').textContent = lang === 'TR' ? 'EN' : 'TR';
+    playSound(800, 0.3);
+    loadProgress();
+    setTimeout(runIntro, 500);
+    initPyodide();
+}
+
+function changeLanguage() {
+    lang = lang === 'TR' ? 'EN' : 'TR';
+    document.getElementById('navLangBtn').textContent = lang === 'TR' ? 'EN' : 'TR';
+    initUI();
+    playSound(900, 0.2);
+}
+
+let introStep = 0;
+function runIntro() {
+    const msg = document.getElementById('intro-msg');
+    const lines = content[lang].intro;
+    if (introStep < lines.length) {
+        msg.style.opacity = 0;
+        setTimeout(() => {
+            msg.textContent = lines[introStep];
+            msg.style.opacity = 1; msg.style.transform = 'translateY(0)';
+            playSound(300 + introStep * 50, 0.5);
+            introStep++;
+            setTimeout(runIntro, 2500);
+        }, 400);
+    } else {
+        const btn = document.getElementById('intro-action');
+        btn.textContent = content[lang].introBtn;
+        btn.style.display = 'block';
+        btn.classList.add('pulse');
+    }
+}
+
+function exitIntro() {
+    const intro = document.getElementById('intro-overlay');
+    intro.style.opacity = '0';
+    playSound(800, 0.5);
+    setTimeout(() => { intro.style.display = 'none'; initUI(); }, 1500);
+}
+
+// ============================================================
+// MAIN UI
+// ============================================================
+function initUI() {
+    document.getElementById('section-title').textContent = content[lang].title;
+    document.getElementById('storyText').textContent = content[lang].story;
+    document.getElementById('progressContainer').style.display = 'block';
+    document.getElementById('statsDisplay').style.display = 'flex';
+    document.getElementById('resetLink').textContent = lang === 'TR' ? 'Yeniden Başlat' : 'Reset';
+    
+    updateStats();
+    renderGrid();
+    spawnRobots();
+    setupAudioControls();
+}
+
+function renderGrid() {
+    const grid = document.getElementById('grid');
+    grid.innerHTML = '';
+    
+    topicsData.forEach((topic, i) => {
+        const isCompleted = gameState.completedTopics.includes(topic.id);
+        const isLocked = i > 0 && !gameState.completedTopics.includes(topicsData[i-1].id) && !isCompleted;
+        const isAI = topic.isAI || false;
+        
+        const card = document.createElement('div');
+        card.className = 'mission-card' + (isLocked ? ' locked' : '') + (isCompleted ? ' completed' : '') + (isAI ? ' ai-card' : '');
+        card.style.borderColor = topic.color;
+        
+        const title = lang === 'TR' ? topic.titleTR : topic.titleEN;
+        const desc = lang === 'TR' ? topic.storyMissionTR : topic.storyMissionEN;
+        
+        card.innerHTML = `
+            <span class="card-status">${isCompleted ? '✅' : (isLocked ? '🔒' : '')}</span>
+            <i class="fas ${topic.iconClass} card-icon ${isAI ? 'ai-icon' : ''}"></i>
+            <h3>${title} ${isAI ? '🤖' : ''}</h3>
+            <p>${desc.substring(0, 80)}...</p>
+        `;
+        
+        if (!isLocked) {
+            card.onclick = () => { playSound(600, 0.2); openLesson(i); };
+        }
+        
+        grid.appendChild(card);
+    });
+    
+    grid.style.opacity = 1; grid.style.transform = 'translateY(0)';
+}
+
+function updateStats() {
+    document.getElementById('xpDisplay').textContent = gameState.xp + ' XP';
+    document.getElementById('badgeDisplay').textContent = gameState.badges.length;
+    document.getElementById('moodFill').style.width = Math.min(100, gameState.robotMood) + '%';
+    document.getElementById('progressBar').style.width = (gameState.completedTopics.length / topicsData.length * 100) + '%';
+}
+
+// ============================================================
+// LESSON MODAL
+// ============================================================
+function openLesson(index) {
+    currentTopicIndex = index;
+    currentLessonStep = 0;
+    currentQuizIndex = 0;
+    quizAnswers = [];
+    
+    const topic = topicsData[index];
+    document.getElementById('lessonTitle').textContent = lang === 'TR' ? topic.titleTR : topic.titleEN;
+    document.getElementById('lessonModal').classList.add('active');
+    
+    renderLessonProgress();
+    renderLessonStep();
+}
+
+function closeLesson() {
+    document.getElementById('lessonModal').classList.remove('active');
+    renderGrid();
+}
+
+function renderLessonProgress() {
+    const container = document.getElementById('lessonProgress');
+    const steps = content[lang].steps;
+    const icons = ['fa-book', 'fa-graduation-cap', 'fa-code', 'fa-flask', 'fa-terminal', 'fa-question-circle', 'fa-trophy'];
+    
+    container.innerHTML = steps.map((step, i) => `
+        <div class="progress-step ${i === currentLessonStep ? 'active' : ''} ${i < currentLessonStep ? 'completed' : ''}" onclick="goToStep(${i})">
+            <i class="fas ${icons[i]}"></i>
+            ${step}
+        </div>
+    `).join('');
+}
+
+function goToStep(step) {
+    if (step <= currentLessonStep || step === currentLessonStep + 1) {
+        currentLessonStep = step;
+        renderLessonProgress();
+        renderLessonStep();
+        playSound(500, 0.1);
+    }
+}
+
+function nextStep() {
+    if (currentLessonStep < 6) {
+        currentLessonStep++;
+        renderLessonProgress();
+        renderLessonStep();
+        playSound(600, 0.2);
+    }
+}
+
+function renderLessonStep() {
+    const topic = topicsData[currentTopicIndex];
+    const container = document.getElementById('lessonContent');
+    const isAI = topic.isAI || false;
+    
+    switch(currentLessonStep) {
+        case 0: container.innerHTML = renderStoryStep(topic, isAI); break;
+        case 1: container.innerHTML = renderLearnStep(topic, isAI); break;
+        case 2: container.innerHTML = renderExamplesStep(topic, isAI); break;
+        case 3: container.innerHTML = renderMiniTryStep(topic, isAI); break;
+        case 4: container.innerHTML = renderCodeStep(topic, isAI); break;
+        case 5: container.innerHTML = renderQuizStep(topic, isAI); break;
+        case 6: container.innerHTML = renderRewardStep(topic, isAI); break;
+    }
+}
+
+function renderStoryStep(topic, isAI) {
+    const story = lang === 'TR' ? topic.storyMissionTR : topic.storyMissionEN;
+    const aiSection = isAI ? '<div class="ai-section" style="margin: 20px 0; padding: 20px; text-align: center;"><h3><i class="fas fa-brain"></i> 🤖 YAPAY ZEKA GÖREVİ 🤖</h3><p>Bu bir yapay zeka konusudur! Robotları daha akıllı hale getireceksin!</p></div>' : '';
+    
+    return `
+        <div class="lesson-section active">
+            <div class="story-mission">
+                <h3><i class="fas fa-scroll"></i> ${lang === 'TR' ? 'Görev Brifingi' : 'Mission Briefing'}</h3>
+                <div class="story-robot">${isAI ? '🧠' : '🤖'}</div>
+                ${aiSection}
+                <p>${story}</p>
+            </div>
+            <button class="continue-btn" onclick="nextStep()"><i class="fas fa-arrow-right"></i> ${content[lang].next}</button>
+        </div>
+    `;
+}
+
+function renderLearnStep(topic, isAI) {
+    const learn = lang === 'TR' ? topic.learnTR : topic.learnEN;
+    const aiStyle = isAI ? 'ai-section' : 'learn-content';
+    const icon = isAI ? 'fa-brain' : 'fa-lightbulb';
+    const title = isAI ? (lang === 'TR' ? 'Yapay Zeka Öğrenelim!' : 'Let\'s Learn AI!') : (lang === 'TR' ? 'Öğrenelim!' : 'Let\'s Learn!');
+    
+    return `
+        <div class="lesson-section active">
+            <div class="${aiStyle}">
+                <h3><i class="fas ${icon}"></i> ${title}</h3>
+                ${learn}
+            </div>
+            <button class="continue-btn" onclick="nextStep()"><i class="fas fa-arrow-right"></i> ${content[lang].next}</button>
+        </div>
+    `;
+}
+
+function renderExamplesStep(topic, isAI) {
+    const examples = lang === 'TR' ? topic.examplesTR : topic.examplesEN;
+    let html = '<div class="lesson-section active">';
+    examples.forEach((ex, i) => {
+        html += `
+            <div class="example-card">
+                <h4><i class="fas fa-code"></i> ${lang === 'TR' ? 'Örnek' : 'Example'} ${i+1}: ${ex.title}</h4>
+                <div class="example-code">${ex.code}</div>
+                <div class="example-explanation">${ex.explanation}</div>
+            </div>
+        `;
+    });
+    html += `<button class="continue-btn" onclick="nextStep()"><i class="fas fa-arrow-right"></i> ${content[lang].next}</button></div>`;
+    return html;
+}
+
+function renderMiniTryStep(topic, isAI) {
+    const mini = lang === 'TR' ? topic.miniTryTR : topic.miniTryEN;
+    let interactiveHtml = '';
+    
+    if (topic.miniTryType === 'output-prediction' || topic.miniTryType === 'choose-path' || topic.miniTryType === 'loop-pattern' || topic.miniTryType === 'bug-fix' || topic.miniTryType === 'function-builder' || topic.miniTryType === 'robot-builder' || topic.miniTryType === 'inventory-manager' || topic.miniTryType === 'project-build') {
+        interactiveHtml = `
+            <p style="font-size:1.2rem;margin-bottom:15px">${mini.question}</p>
+            ${mini.code ? `<div class="example-code">${mini.code}</div>` : ''}
+            <div class="quiz-options" id="miniOptions">
+                ${mini.options.map((opt, i) => `
+                    <div class="quiz-option" onclick="checkMiniTry(${i}, ${mini.answer})">${opt}</div>
+                `).join('')}
+            </div>
+            <div id="miniResult" style="margin-top:20px"></div>
+        `;
+    } else if (topic.miniTryType === 'fill-blank') {
+        interactiveHtml = `
+            <p style="font-size:1.2rem;margin-bottom:15px">${mini.question}</p>
+            <input type="text" class="quiz-input" id="fillBlankInput" placeholder="${lang === 'TR' ? 'Cevabını yaz...' : 'Type your answer...'}">
+            <button class="quiz-submit-btn" onclick="checkFillBlank('${mini.answer}')">${content[lang].submit}</button>
+            <div id="miniResult" style="margin-top:20px"></div>
+        `;
+    }
+    
+    return `
+        <div class="lesson-section active">
+            <div class="interactive-area ${isAI ? 'ai-section' : ''}">
+                <h3><i class="fas fa-flask"></i> ${lang === 'TR' ? 'Mini Deneme!' : 'Mini Try!'}</h3>
+                ${interactiveHtml}
+            </div>
+            <button class="continue-btn" onclick="nextStep()" style="margin-top:20px"><i class="fas fa-arrow-right"></i> ${content[lang].next}</button>
+        </div>
+    `;
+}
+
+function checkMiniTry(selected, correct) {
+    const options = document.querySelectorAll('#miniOptions .quiz-option');
+    options.forEach((opt, i) => {
+        opt.classList.add('disabled');
+        if (i === correct) opt.classList.add('correct');
+        else if (i === selected) opt.classList.add('incorrect');
+    });
+    
+    const result = document.getElementById('miniResult');
+    if (selected === correct) {
+        result.innerHTML = `<div class="quiz-feedback correct show"><h4>${content[lang].quizCorrect}</h4></div>`;
+        playSound(800, 0.3);
+    } else {
+        result.innerHTML = `<div class="quiz-feedback incorrect show"><h4>${content[lang].quizIncorrect}</h4></div>`;
+        playSound(300, 0.3);
+    }
+}
+
+function checkFillBlank(correct) {
+    const input = document.getElementById('fillBlankInput');
+    const result = document.getElementById('miniResult');
+    const answer = input.value.trim().toLowerCase();
+    
+    if (answer === correct.toLowerCase()) {
+        input.classList.add('correct');
+        result.innerHTML = `<div class="quiz-feedback correct show"><h4>${content[lang].quizCorrect}</h4></div>`;
+        playSound(800, 0.3);
+    } else {
+        input.classList.add('incorrect');
+        result.innerHTML = `<div class="quiz-feedback incorrect show"><h4>${content[lang].quizIncorrect}</h4><p>${lang === 'TR' ? 'Doğru cevap: ' : 'Correct answer: '}${correct}</p></div>`;
+        playSound(300, 0.3);
+    }
+}
+
+function renderCodeStep(topic, isAI) {
+    return `
+        <div class="lesson-section active">
+            <div class="code-editor-container">
+                <h3 style="color:var(--bot-color3);margin-bottom:15px"><i class="fas fa-terminal"></i> ${lang === 'TR' ? 'Kod Zamanı!' : 'Code Time!'}</h3>
+                <textarea class="code-editor" id="codeEditor">${topic.starterCode}</textarea>
+                <div class="editor-buttons">
+                    <button class="run-btn" onclick="runCode()"><i class="fas fa-play"></i> ${content[lang].run}</button>
+                    <button class="reset-btn" onclick="resetCode('${topic.starterCode.replace(/'/g, "\\'")}')"><i class="fas fa-undo"></i> ${content[lang].reset}</button>
+                </div>
+                <div class="code-output" id="codeOutput" style="display:none">
+                    <div class="output-title"><i class="fas fa-terminal"></i> ${lang === 'TR' ? 'Çıktı' : 'Output'}</div>
+                    <div class="output-content" id="outputContent"></div>
+                </div>
+            </div>
+            <button class="continue-btn" onclick="nextStep()" style="margin-top:20px"><i class="fas fa-arrow-right"></i> ${content[lang].next}</button>
+        </div>
+    `;
+}
+
+async function runCode() {
+    const code = document.getElementById('codeEditor').value;
+    const output = document.getElementById('codeOutput');
+    const contentDiv = document.getElementById('outputContent');
+    
+    output.style.display = 'block';
+    contentDiv.textContent = lang === 'TR' ? 'Çalışıyor...' : 'Running...';
+    
+    const result = await runPython(code);
+    output.className = 'code-output' + (result.error ? ' error' : '');
+    contentDiv.textContent = result.output;
+    
+    if (!result.error) playSound(700, 0.2);
+    else playSound(300, 0.2);
+}
+
+function resetCode(original) {
+    document.getElementById('codeEditor').value = original.replace(/\\'/g, "'");
+    document.getElementById('codeOutput').style.display = 'none';
+    playSound(400, 0.1);
+}
+
+// ============================================================
+// QUIZ SYSTEM
+// ============================================================
+function renderQuizStep(topic, isAI) {
+    const quiz = topic.quizzes[currentQuizIndex];
+    const question = lang === 'TR' ? quiz.questionTR : quiz.questionEN;
+    
+    let optionsHtml = '';
+    if (quiz.type === 'choice') {
+        const choices = lang === 'TR' ? quiz.choicesTR : quiz.choicesEN;
+        optionsHtml = `
+            <div class="quiz-options" id="quizOptions">
+                ${choices.map((c, i) => `<div class="quiz-option" onclick="selectQuizOption(${i})">${c}</div>`).join('')}
+            </div>
+        `;
+    } else {
+        optionsHtml = `
+            <input type="text" class="quiz-input" id="quizInput" placeholder="${lang === 'TR' ? 'Cevabını yaz...' : 'Type answer...'}">
+            <button class="quiz-submit-btn" onclick="submitQuizInput()">${content[lang].submit}</button>
+        `;
+    }
+    
+    return `
+        <div class="lesson-section active">
+            <div class="quiz-container ${isAI ? 'ai-section' : ''}">
+                <div class="quiz-progress">
+                    ${topic.quizzes.map((_, i) => `
+                        <div class="quiz-dot ${i === currentQuizIndex ? 'active' : ''} ${quizAnswers[i] === true ? 'correct' : ''} ${quizAnswers[i] === false ? 'incorrect' : ''}">${i + 1}</div>
+                    `).join('')}
+                </div>
+                <div class="quiz-question">${question}</div>
+                ${optionsHtml}
+                <div class="quiz-feedback" id="quizFeedback"></div>
+            </div>
+        </div>
+    `;
+}
+
+let selectedOption = -1;
+
+function selectQuizOption(index) {
+    const options = document.querySelectorAll('#quizOptions .quiz-option');
+    options.forEach((opt, i) => {
+        opt.classList.remove('selected');
+        if (i === index) opt.classList.add('selected');
+    });
+    selectedOption = index;
+    playSound(500, 0.1);
+    
+    // Auto-submit after selection
+    setTimeout(() => checkQuizAnswer(), 300);
+}
+
+function submitQuizInput() {
+    const input = document.getElementById('quizInput');
+    if (input && input.value.trim()) {
+        checkQuizAnswer(input.value.trim());
+    }
+}
+
+function checkQuizAnswer(inputValue = null) {
+    const topic = topicsData[currentTopicIndex];
+    const quiz = topic.quizzes[currentQuizIndex];
+    const feedback = document.getElementById('quizFeedback');
+    
+    let isCorrect = false;
+    
+    if (quiz.type === 'choice') {
+        isCorrect = selectedOption === quiz.correct;
+        const options = document.querySelectorAll('#quizOptions .quiz-option');
+        options.forEach((opt, i) => {
+            opt.classList.add('disabled');
+            if (i === quiz.correct) opt.classList.add('correct');
+            else if (i === selectedOption && !isCorrect) opt.classList.add('incorrect');
+        });
+    } else {
+        const correctAnswers = Array.isArray(quiz.correct) ? quiz.correct : [quiz.correct];
+        isCorrect = correctAnswers.some(ans => inputValue.toLowerCase() === ans.toString().toLowerCase());
+        const input = document.getElementById('quizInput');
+        input.classList.add(isCorrect ? 'correct' : 'incorrect');
+        input.disabled = true;
+    }
+    
+    quizAnswers[currentQuizIndex] = isCorrect;
+    
+    const hint = lang === 'TR' ? quiz.hintTR : quiz.hintEN;
+    const explanation = lang === 'TR' ? quiz.explanationTR : quiz.explanationEN;
+    
+    if (isCorrect) {
+        playSound(800, 0.3);
+        feedback.innerHTML = `
+            <div class="quiz-feedback correct show">
+                <h4>✅ ${content[lang].quizCorrect}</h4>
+                <p><strong>${content[lang].explanation}:</strong> ${explanation}</p>
+                <button class="quiz-next-btn" onclick="nextQuiz()">${content[lang].next} →</button>
+            </div>
+        `;
+    } else {
+        playSound(300, 0.3);
+        feedback.innerHTML = `
+            <div class="quiz-feedback incorrect show">
+                <h4>❌ ${content[lang].quizIncorrect}</h4>
+                <div class="quiz-hint"><h5>💡 ${content[lang].hint}:</h5><p>${hint}</p></div>
+                <p><strong>${content[lang].explanation}:</strong> ${explanation}</p>
+                <button class="quiz-next-btn" onclick="nextQuiz()">${content[lang].next} →</button>
+            </div>
+        `;
+    }
+    
+    feedback.classList.add('show');
+}
+
+function nextQuiz() {
+    const topic = topicsData[currentTopicIndex];
+    selectedOption = -1;
+    
+    if (currentQuizIndex < topic.quizzes.length - 1) {
+        currentQuizIndex++;
+        renderLessonStep();
+        playSound(600, 0.2);
+    } else {
+        // All quizzes done - go to reward
+        nextStep();
+    }
+}
+
+// ============================================================
+// REWARD SYSTEM
+// ============================================================
+function renderRewardStep(topic, isAI) {
+    const reward = topic.reward;
+    const badgeName = lang === 'TR' ? reward.badgeNameTR : reward.badgeNameEN;
+    const correctCount = quizAnswers.filter(a => a === true).length;
+    
+    // Apply rewards
+    if (!gameState.completedTopics.includes(topic.id)) {
+        gameState.xp += reward.xp;
+        gameState.badges.push({ id: reward.badgeId, name: badgeName, icon: reward.badgeIcon, isAI: isAI });
+        gameState.robotMood = Math.min(100, gameState.robotMood + reward.moodDelta);
+        gameState.completedTopics.push(topic.id);
+        saveProgress();
+        
+        // Celebration sounds
+        for (let i = 0; i < 5; i++) {
+            setTimeout(() => playSound(400 + i * 100, 0.2), i * 150);
+        }
+        
+        // Special AI celebration
+        if (isAI) {
+            for (let i = 0; i < 3; i++) {
+                setTimeout(() => playSound(600 + i * 200, 0.3, 'sawtooth'), i * 300);
+            }
+        }
+    }
+    
+    const aiCelebration = isAI ? '<div class="ai-section" style="margin: 20px 0; padding: 20px; text-align: center;"><h3><i class="fas fa-brain"></i> 🤖 YAPAY ZEKA BAŞARISI! 🤖</h3><p>Artık bir AI mühendisi adayısın!</p></div>' : '';
+    
+    return `
+        <div class="lesson-section active">
+            <div class="reward-section">
+                ${aiCelebration}
+                <div class="reward-animation">${isAI ? '🧠' : '🎉'}</div>
+                <div class="reward-title">${content[lang].rewardTitle}</div>
+                <div class="reward-stats">
+                    <div class="reward-stat">
+                        <div class="reward-stat-value">+${reward.xp}</div>
+                        <div class="reward-stat-label">${content[lang].rewardXP}</div>
+                    </div>
+                    <div class="reward-stat">
+                        <div class="reward-stat-value">${correctCount}/${topic.quizzes.length}</div>
+                        <div class="reward-stat-label">${lang === 'TR' ? 'Doğru Cevap' : 'Correct'}</div>
+                    </div>
+                </div>
+                <div class="badge-earned ${isAI ? 'ai-glow' : ''}">
+                    <i class="fas fa-medal"></i>
+                    ${reward.badgeIcon} ${badgeName}
+                </div>
+                <button class="continue-btn" onclick="finishLesson()">
+                    <i class="fas fa-check"></i> ${content[lang].continue}
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+function finishLesson() {
+    closeLesson();
+    updateStats();
+    spawnRobots();
+    
+    // Check if all topics completed
+    if (gameState.completedTopics.length >= topicsData.length && !gameState.finaleShown) {
+        setTimeout(showFinale, 1000);
+    }
+}
+
+// ============================================================
+// FINALE & CERTIFICATE
+// ============================================================
+function showFinale() {
+    gameState.finaleShown = true;
+    saveProgress();
+    
+    document.getElementById('finaleTitle').textContent = content[lang].finaleTitle;
+    document.getElementById('finaleMessage').textContent = content[lang].finaleMsg;
+    document.getElementById('nameLabel').textContent = content[lang].nameLabel;
+    document.getElementById('certBtn').textContent = content[lang].certBtn;
+    
+    document.getElementById('finaleModal').classList.add('active');
+    
+    // Epic celebration
+    for (let i = 0; i < 10; i++) {
+        setTimeout(() => playSound(300 + i * 80, 0.3), i * 200);
+    }
+}
+
+function showCertificate() {
+    const name = document.getElementById('engineerName').value || (lang === 'TR' ? 'Anonim Kahraman' : 'Anonymous Hero');
+    gameState.engineerName = name;
+    saveProgress();
+    
+    document.getElementById('certMainTitle').textContent = content[lang].certTitle;
+    document.getElementById('certText1').textContent = content[lang].certText;
+    document.getElementById('certName').textContent = name;
+    document.getElementById('certAchievement').textContent = content[lang].certAchieve;
+    document.getElementById('printBtnText').textContent = content[lang].print;
+    document.getElementById('closeCertBtn').textContent = content[lang].close;
+    
+    // Add badges
+    const badgesContainer = document.getElementById('certBadges');
+    badgesContainer.innerHTML = gameState.badges.map(b => `<div class="certificate-badge" title="${b.name}">${b.icon}</div>`).join('');
+    
+    // Date
+    const today = new Date();
+    document.getElementById('certDate').textContent = today.toLocaleDateString(lang === 'TR' ? 'tr-TR' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    
+    document.getElementById('finaleModal').classList.remove('active');
+    document.getElementById('certificateModal').classList.add('active');
+    
+    playSound(1000, 0.5);
+}
+
+function printCertificate() {
+    window.print();
+}
+
+function closeCertificate() {
+    document.getElementById('certificateModal').classList.remove('active');
+}
+
+// ============================================================
+// PROGRESS MANAGEMENT
+// ============================================================
+function saveProgress() {
+    try {
+        localStorage.setItem('aihanAcademy', JSON.stringify(gameState));
+    } catch (e) { console.log('Save error:', e); }
+}
+
+function loadProgress() {
+    try {
+        const saved = localStorage.getItem('aihanAcademy');
+        if (saved) {
+            const data = JSON.parse(saved);
+            gameState = { ...gameState, ...data };
+        }
+    } catch (e) { console.log('Load error:', e); }
+}
+
+function resetAdventure() {
+    if (confirm(lang === 'TR' ? 'Tüm ilerleme silinecek. Emin misin?' : 'All progress will be deleted. Are you sure?')) {
+        localStorage.removeItem('aihanAcademy');
+        gameState = { xp: 0, badges: [], robotMood: 20, completedTopics: [], finaleShown: false, engineerName: '' };
+        updateStats();
+        renderGrid();
+        spawnRobots();
+        playSound(400, 0.3);
+    }
+}
+
+// ============================================================
+// TERMINAL FUNCTIONS
+// ============================================================
+function showPythonTerminal() {
+    document.getElementById('pythonTerminal').style.display = 'flex';
+    playSound(600, 0.2);
+}
+
+function closeTerminal() {
+    document.getElementById('pythonTerminal').style.display = 'none';
+}
+
+function minimizeTerminal() {
+    const terminal = document.getElementById('pythonTerminal');
+    terminal.style.height = terminal.style.height === '50px' ? '350px' : '50px';
+}
+
+function maximizeTerminal() {
+    const terminal = document.getElementById('pythonTerminal');
+    terminal.style.width = terminal.style.width === '90%' ? '450px' : '90%';
+    terminal.style.height = terminal.style.height === '80%' ? '350px' : '80%';
+}
+
+function addTerminalOutput(text, isError = false) {
+    const output = document.getElementById('terminalOutput');
+    const line = document.createElement('div');
+    line.className = isError ? 'error' : 'output';
+    line.textContent = text;
+    output.appendChild(line);
+    output.scrollTop = output.scrollHeight;
+}
+
+async function handleTerminalInput(e) {
+    if (e.key === 'Enter') {
+        const input = document.getElementById('terminalInput');
+        const code = input.value.trim();
+        if (!code) return;
+        
+        addTerminalOutput('>>> ' + code);
+        input.value = '';
+        
+        const result = await runPython(code);
+        addTerminalOutput(result.output, result.error);
+    }
+}
+
+// ============================================================
+// AUDIO CONTROLS
+// ============================================================
+function setupAudioControls() {
+    const musicBtn = document.getElementById('musicToggle');
+    const volumeSlider = document.getElementById('volumeControl');
+    const terminalBtn = document.getElementById('terminalToggle');
+    
+    volumeSlider.value = globalVolume * 100;
+    volumeSlider.oninput = () => { globalVolume = volumeSlider.value / 100; };
+    
+    musicBtn.onclick = () => {
+        musicPlaying = !musicPlaying;
+        musicBtn.innerHTML = musicPlaying ? '<i class="fas fa-pause"></i>' : '<i class="fas fa-music"></i>';
+        if (musicPlaying) startBackgroundMusic();
+        else stopBackgroundMusic();
+    };
+    
+    terminalBtn.onclick = showPythonTerminal;
+}
+
+function startBackgroundMusic() {
+    if (backgroundMusicInterval) return;
+    const notes = [261, 293, 329, 349, 392, 440, 493, 523];
+    let noteIndex = 0;
+    backgroundMusicInterval = setInterval(() => {
+        if (!pageVisible || !musicPlaying) return;
+        playSound(notes[noteIndex % notes.length], 0.3, 'sine', globalVolume * 0.3);
+        noteIndex++;
+    }, 500);
+}
+
+function stopBackgroundMusic() {
+    if (backgroundMusicInterval) {
+        clearInterval(backgroundMusicInterval);
+        backgroundMusicInterval = null;
+    }
+}
+
+// ============================================================
+// PAGE VISIBILITY
+// ============================================================
+document.addEventListener('visibilitychange', () => {
+    pageVisible = !document.hidden;
+    if (!pageVisible) stopBackgroundMusic();
+    else if (musicPlaying) startBackgroundMusic();
+});
+
+// ============================================================
+// INITIALIZATION
+// ============================================================
+window.onload = () => {
+    createStars();
+    
+    // Resume audio context on first interaction
+    document.body.addEventListener('click', () => {
+        if (audioCtx && audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+    }, { once: true });
+};
+</script>
+</body>
+</html>
