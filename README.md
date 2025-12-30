@@ -8,7 +8,7 @@ Görevleri tamamla, mini quiz’leri çöz, kodu tarayıcıda çalıştır ve ka
 ## 🚀 Canlı Demo (GitHub Pages)
 Repo ayarlarında Pages açtıysan demo linkin şuna benzer:
 
-- `https://<kullanici-adi>.github.io/<repo-adi>/`
+- https://ayhanbzkrt.github.io/aihanacademypythonrobotsave
 
 > Eğer proje adını “repository name” olarak yayınladıysan URL yukarıdaki gibi olur.
 
